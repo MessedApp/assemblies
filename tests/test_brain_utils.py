@@ -4,8 +4,8 @@ from utils import value_or_default
 
 class TestBrainUtils(object):
 
-    def __init__(self, default_p=0.01, default_area_size=1000, default_winners_size=300,
-                 default_stimulus_size=300, beta=0.01):
+    def __init__(self, default_p=0.1, default_area_size=10000, default_winners_size=100,
+                 default_stimulus_size=100, beta=0.05):
         self.P = default_p
         self.area_size = default_area_size
         self.winners_size = default_winners_size
