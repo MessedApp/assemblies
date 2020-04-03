@@ -439,7 +439,6 @@ class Brain:
 					for i in range(area.support_size, area._new_support_size):
 						self.get_area_connectomes(other_area, name)[j][i] = np.random.binomial(1, self.p)
 			# add num_first_winners rows, all bernoulli with probability p
-			# TODO: Should all this be indented?
 			if name in self.areas:
 				self.connectomes[name][other_area] = np.pad(self.connectomes[name][other_area],
 					((0, num_first_winners),(0, 0)), 'constant', constant_values=0)
