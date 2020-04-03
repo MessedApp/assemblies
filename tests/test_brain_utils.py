@@ -5,7 +5,7 @@ from utils import value_or_default
 class TestBrainUtils(object):
 
     def __init__(self, default_p=0.1, default_area_size=10000, default_winners_size=100,
-                 default_stimulus_size=100, beta=0.05):
+                 default_stimulus_size=100, beta=0.1):
         self.P = default_p
         self.area_size = default_area_size
         self.winners_size = default_winners_size
@@ -25,27 +25,34 @@ class TestBrainUtils(object):
         self.brain = None
         # Area names, ordered by their creation time
         self._areas = []
+        self.output_area = None
         # Stimuli names, order by their creation time
         self._stimuli = []
 
-    def create_brain(self, number_of_areas, p=None, area_size=None, winners_size=None, beta=None):
+    def create_brain(self, number_of_areas, p=None, area_size=None, winners_size=None, beta=None,
+                     add_output_area=False):
         self._init_data()
 
         self.brain = Brain(value_or_default(p, self.P))
         for i in range(1, number_of_areas + 1):
             self._add_area(str(i), area_size, winners_size, beta)
+
+        if add_output_area:
+            self.brain.add_output_area('output')
+            self.output_area = self.brain.output_areas['output']
         return self.brain
 
     def create_and_stimulate_brain(self, number_of_areas, number_of_stimulated_areas=1,
-                                   stimulus_size=None, p=None, area_size=None, winners_size=None, beta=None):
+                                   stimulus_size=None, p=None, area_size=None, winners_size=None, beta=None,
+                                   add_output_area=False):
         assert number_of_stimulated_areas <= number_of_areas
 
         self.create_brain(number_of_areas=number_of_areas, p=p, area_size=area_size,
-                          winners_size=winners_size, beta=beta)
-        self._add_stimulus('1', stimulus_size)
+                          winners_size=winners_size, beta=beta, add_output_area=add_output_area)
+        self._add_stimulus('stimulus', stimulus_size)
 
         areas_to_stimulate = self._areas[:number_of_stimulated_areas]
-        self.brain.project(area_to_area={}, stim_to_area={'1': areas_to_stimulate})
+        self.brain.project(area_to_area={}, stim_to_area={'stimulus': areas_to_stimulate})
         return self.brain
 
     def _add_area(self, name, n, k, beta):
