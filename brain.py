@@ -279,7 +279,7 @@ class Brain:
 			area_obj.num_first_winners = num_first_winners
 
 		# once done everything, for each area in to_update: area.update_winners()
-		for area, area_obj in to_update:
+		for area_obj in to_update.values():
 			area_obj.update_winners()
 
 	def project_into(self, area: Union[Area, OutputArea], from_stimuli: List[str], from_areas: List[str]) -> int:
@@ -447,7 +447,9 @@ class Brain:
 				for i in range(area.support_size, area._new_support_size):
 					for j in range(columns):
 						self.connectomes[name][other_area][i][j] = np.random.binomial(1, self.p)
-			logging.debug("Connectome of %s to %s is now: %s" % (name, other_area, self.connectomes[name][other_area]))
+
+				logging.debug("Connectome of %s to %s is now: %s" % (name, other_area, self.get_area_connectomes(name, other_area)))
+
 
 		return num_first_winners
 
