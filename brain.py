@@ -18,17 +18,18 @@ This module contains classes to represent different elements of a brain simulati
 		meaning that all neurons that have their original, random connectome weights (0 or 1) are not saved explicitly.
 	- Assembly - TODO define and express in code
 """
-import logging
-from typing import List, Mapping, Tuple, Dict, Any
-import numpy as np
 import heapq
+import logging
+import math
+import random
 from collections import defaultdict
+from itertools import chain
+from typing import List, Mapping, Dict, Union
 
+import numpy as np
 from numpy.core._multiarray_umath import ndarray
 from scipy.stats import binom
 from scipy.stats import truncnorm
-import math
-import random
 
 
 class Stimulus:
@@ -49,7 +50,28 @@ class Stimulus:
 		self.k = k
 
 
-class Area:
+class BaseArea:
+	def __init__(self, name) -> None:
+		super().__init__()
+		self.name = name
+		self.stimulus_beta: Dict[str, float] = {}
+		self.area_beta: Dict[str, float] = {}
+		self.support_size: int = 0
+		self.winners: List[int] = []
+		self._new_support_size: int = 0
+		self._new_winners: List[int] = []
+		self.num_first_winners: int = -1
+
+	def update_winners(self) -> None:
+		""" This function updates the list of winners for this area after a projection step.
+
+			TODO: redesign this so that the list of new winners is not saved in area.
+		"""
+		self.winners = self._new_winners
+		self.support_size = self._new_support_size
+
+
+class Area(BaseArea):
 	"""Represents an individual area of the brain.
 
 	The list of neurons that are firing is given by 'winners'. It is updated through application of 'Brain.project',
@@ -80,27 +102,20 @@ class Area:
 			updated when the projection ends, so that the newly computed winners won't affect computation
 		num_first_winners: should be equal to 'len(_new_winners)'
 	"""
-
 	def __init__(self, name: str, n: int, k: int, beta: float = 0.05):
-		self.name = name
+		super().__init__(name)
 		self.n = n
 		self.k = k
 		self.beta = beta
-		self.stimulus_beta: Dict[str, float] = {}
-		self.area_beta: Dict[str, float] = {}
-		self.support_size: int = 0
-		self.winners: List[int] = []
-		self._new_support_size: int = 0
-		self._new_winners: List[int] = []
-		self.num_first_winners: int = -1
 
-	def update_winners(self) -> None:
-		""" This function updates the list of winners for this area after a projection step.
 
-			TODO: redesign this so that the list of new winners is not saved in area.
-		"""
-		self.winners = self._new_winners
-		self.support_size = self._new_support_size
+class OutputArea(BaseArea):
+	n = 1000
+	k = 30
+	beta = 0.05
+
+	def __init__(self, name: str):
+		super().__init__(name)
 
 
 class Brain:
@@ -121,10 +136,30 @@ class Brain:
 
 	def __init__(self, p: float):
 		self.areas: Dict[str, Area] = {}
+		self.output_areas: Dict[str, OutputArea] = {}
 		self.stimuli: Dict[str, Stimulus] = {}
 		self.stimuli_connectomes: Dict[str, Dict[str, ndarray]] = {}
 		self.connectomes: Dict[str, Dict[str, ndarray]] = {}
+
+		# OutputArea Connectomes:
+		self.output_stimuli_connectomes: Dict[str, Dict[str, List]] = \
+			defaultdict(lambda: defaultdict(lambda: [[0] * OutputArea.n]))
+		self.output_connectomes: Dict[str, Dict[str, List]] = \
+			defaultdict(lambda: defaultdict(lambda: [[0] * OutputArea.n for i in range(OutputArea.n)]))
+
 		self.p: float = p
+
+	def get_stimulus_connectomes(self, stimulus_name, area_name):
+		if area_name in self.output_areas:
+			return self.output_stimuli_connectomes[stimulus_name][area_name]
+		else:
+			return self.stimuli_connectomes[stimulus_name][area_name]
+
+	def get_area_connectomes(self, from_area_name, to_area_name):
+		if to_area_name in self.output_areas:
+			return self.output_connectomes[from_area_name][to_area_name]
+		else:
+			return self.connectomes[from_area_name][to_area_name]
 
 	def add_stimulus(self, name: str, k: int) -> None:
 		""" Initialize a random stimulus with 'k' neurons firing.
@@ -144,6 +179,20 @@ class Brain:
 			self.areas[key].stimulus_beta[name] = self.areas[key].beta
 		self.stimuli_connectomes[name] = new_connectomes
 
+		for key in self.output_areas:
+			self.output_areas[key].stimulus_beta[name] = self.output_areas[key].beta
+			# TODO: maybe initialize all stimulus connectomes here
+
+	def add_output_area(self, name: str) -> None:
+		assert name not in self.areas, "Can't create an output area in this name, an area with this name already exists!"
+		self.output_areas[name] = OutputArea(name)
+
+		for stim_name in self.stimuli_connectomes:
+			self.output_areas[name].stimulus_beta[stim_name] = self.output_areas[name].beta
+
+		for key in self.areas:
+			self.output_areas[name].area_beta[key] = self.output_areas[name].beta
+
 	def add_area(self, name: str, n: int, k: int, beta: float) -> None:
 		"""Add an area to this brain, randomly connected to all other areas and stimulus.
 
@@ -159,10 +208,16 @@ class Brain:
 				The plasticity parameter of connectomes FROM this area INTO other areas are decided by
 				the betas of those other areas.
 		"""
+		assert name not in self.output_areas, "Can't create an area in this name, an output area with this name already exists!"
+
 		self.areas[name] = Area(name, n, k, beta)
 
 		for stim_name, stim_connectomes in self.stimuli_connectomes.items():
 			stim_connectomes[name] = np.empty(0)  # TODO: Should this be np.empty((0,0))?
+			# TODO: Answer: No, It's a matrix describing a connectome from the stimulus (single) to the area
+			#  neurons (multiple), thus only one dimension is needed. If the stimulus's k neurons will become
+			# separate in the future, It will make sense to turn this into a (k * n) matrix.
+
 			self.areas[name].stimulus_beta[stim_name] = beta
 
 		new_connectomes: Dict[str, ndarray] = {}
@@ -173,6 +228,11 @@ class Brain:
 			self.areas[key].area_beta[name] = self.areas[key].beta
 			self.areas[name].area_beta[key] = beta
 		self.connectomes[name] = new_connectomes
+
+		# Each output_area[area_beta] gets the beta of the output_area (not the area,
+		# since the betas direction is defined to be the 'to beta').
+		for key in self.output_areas:
+			self.output_areas[key].area_beta[name] = self.output_areas[key].beta
 
 	def project(self, stim_to_area: Mapping[str, List[str]],
 					area_to_area: Mapping[str, List[str]]) -> None:
@@ -195,29 +255,34 @@ class Brain:
 			if stim not in self.stimuli:
 				raise IndexError(stim + " not in brain.stimuli")
 			for area in areas:
-				if area not in self.areas:
+				if area not in chain(self.areas, self.output_areas):
 					raise IndexError(area + " not in brain.areas")
 				stim_in[area].append(stim)
 		for from_area, to_areas in area_to_area.items():
 			if from_area not in self.areas:
 				raise IndexError(from_area + " not in brain.areas")
 			for to_area in to_areas:
-				if to_area not in self.areas:
+				if to_area not in chain(self.areas, self.output_areas):
 					raise IndexError(to_area + " not in brain.areas")
 				area_in[to_area].append(from_area)
 
 		# to_update is the set of all areas that receive input
-		to_update = set().union(list(stim_in.keys()), list(area_in.keys()))
+		to_update = {}
+		for area_name in set().union(list(stim_in.keys()), list(area_in.keys())):
+			if area_name in self.output_areas:
+				to_update[area_name] = self.output_areas[area_name]
+			else:
+				to_update[area_name] = self.areas[area_name]
 
-		for area in to_update:
-			num_first_winners = self.project_into(self.areas[area], stim_in[area], area_in[area])
-			self.areas[area].num_first_winners = num_first_winners
+		for area, area_obj in to_update.items():
+			num_first_winners = self.project_into(area_obj, stim_in[area], area_in[area])
+			area_obj.num_first_winners = num_first_winners
 
 		# once done everything, for each area in to_update: area.update_winners()
-		for area in to_update:
-			self.areas[area].update_winners()
+		for area, area_obj in to_update:
+			area_obj.update_winners()
 
-	def project_into(self, area: Area, from_stimuli: List[str], from_areas: List[str]) -> int:
+	def project_into(self, area: Union[Area, OutputArea], from_stimuli: List[str], from_areas: List[str]) -> int:
 		"""Project multiple stimuli and area assemblies into area 'area' at the same time.
 
 		:param area: The area projected into
@@ -240,11 +305,11 @@ class Brain:
 		name: str = area.name
 		prev_winner_inputs: List[float] = [0.] * area.support_size
 		for stim in from_stimuli:
-			stim_inputs = self.stimuli_connectomes[stim][name]
+			stim_inputs = self.get_stimulus_connectomes(stim, name)
 			for i in range(area.support_size):
 				prev_winner_inputs[i] += stim_inputs[i]
 		for from_area in from_areas:
-			connectome = self.connectomes[from_area][name]
+			connectome = self.get_area_connectomes(from_area, name)
 			for w in self.areas[from_area].winners:
 				for i in range(area.support_size):
 					prev_winner_inputs[i] += connectome[w][i]
@@ -324,14 +389,17 @@ class Brain:
 			# for i in repeat_winners, stimulus_inputs[i] *= (1+beta)
 		for stim in from_stimuli:
 			if num_first_winners > 0:
-				self.stimuli_connectomes[stim][name] = np.resize(self.stimuli_connectomes[stim][name],
-																area.support_size + num_first_winners)
+				if name in self.areas:
+					self.stimuli_connectomes[stim][name] = np.resize(
+						self.stimuli_connectomes[stim][name],
+						area.support_size + num_first_winners
+					)
 			for i in range(num_first_winners):
-				self.stimuli_connectomes[stim][name][area.support_size + i] = first_winner_to_inputs[i][m]
+				self.get_stimulus_connectomes(stim, name)[area.support_size + i] = first_winner_to_inputs[i][m]
 			stim_to_area_beta = area.stimulus_beta[stim]
 			for i in area._new_winners:
-				self.stimuli_connectomes[stim][name][i] *= (1+stim_to_area_beta)
-			logging.debug("stimulus %s now looks like: %s" % (stim, self.stimuli_connectomes[stim][name]))
+				self.get_stimulus_connectomes(stim, name)[i] *= (1+stim_to_area_beta)
+			logging.debug("stimulus %s now looks like: %s" % (stim, self.get_stimulus_connectomes(stim, name)))
 			m += 1
 
 		# connectome for each in_area->area
@@ -341,40 +409,44 @@ class Brain:
 		for from_area in from_areas:
 			from_area_w = self.areas[from_area].support_size
 			from_area_winners = self.areas[from_area].winners
-			self.connectomes[from_area][name] = np.pad(self.connectomes[from_area][name],
-														((0,0), (0,num_first_winners)),
-														'constant', constant_values=0)
+			if name in self.areas:
+				self.connectomes[from_area][name] = np.pad(
+					self.connectomes[from_area][name], ((0, 0), (0, num_first_winners)), 'constant', constant_values=0
+				)
 			for i in range(num_first_winners):
 				total_in = first_winner_to_inputs[i][m]
 				sample_indices = random.sample(from_area_winners, int(total_in))
 				for j in range(from_area_w):
 					if j in sample_indices:
-						self.connectomes[from_area][name][j][area.support_size + i] = 1
+						self.get_area_connectomes(from_area, name)[j][area.support_size + i] = 1
 					if j not in from_area_winners:
-						self.connectomes[from_area][name][j][area.support_size + i] = np.random.binomial(1, self.p)
+						self.get_area_connectomes(from_area, name)[j][area.support_size + i] = np.random.binomial(1, self.p)
 			area_to_area_beta = area.area_beta[from_area]
 			for i in area._new_winners:
 				for j in from_area_winners:
-					self.connectomes[from_area][name][j][i] *= (1.0 +area_to_area_beta)
-			logging.debug("Connectome of %s to %s is now %s" % (from_area, name, self.connectomes[from_area][name]))
+					self.get_area_connectomes(from_area, name)[j][i] *= (1.0 +area_to_area_beta)
+			logging.debug("Connectome of %s to %s is now %s" % (from_area, name, self.get_area_connectomes(from_area, name)))
 			m += 1
 
 		# expand connectomes from other areas that did not fire into area
 		# also expand connectome for area->other_area
 		for other_area in self.areas:
 			if other_area not in from_areas:
-				self.connectomes[other_area][name] = np.pad(self.connectomes[other_area][name],
-					((0,0),(0,num_first_winners)), 'constant', constant_values=0)
+				if name in self.areas:
+					self.connectomes[other_area][name] = np.pad(self.connectomes[other_area][name],
+						((0,0),(0,num_first_winners)), 'constant', constant_values=0)
 				for j in range(self.areas[other_area].support_size):
 					for i in range(area.support_size, area._new_support_size):
-						self.connectomes[other_area][name][j][i] = np.random.binomial(1, self.p)
+						self.get_area_connectomes(other_area, name)[j][i] = np.random.binomial(1, self.p)
 			# add num_first_winners rows, all bernoulli with probability p
-			self.connectomes[name][other_area] = np.pad(self.connectomes[name][other_area],
-				((0, num_first_winners),(0, 0)), 'constant', constant_values=0)
-			columns = len(self.connectomes[name][other_area][0])
-			for i in range(area.support_size, area._new_support_size):
-				for j in range(columns):
-					self.connectomes[name][other_area][i][j] = np.random.binomial(1, self.p)
+			# TODO: Should all this be indented?
+			if name in self.areas:
+				self.connectomes[name][other_area] = np.pad(self.connectomes[name][other_area],
+					((0, num_first_winners),(0, 0)), 'constant', constant_values=0)
+				columns = len(self.connectomes[name][other_area][0])
+				for i in range(area.support_size, area._new_support_size):
+					for j in range(columns):
+						self.connectomes[name][other_area][i][j] = np.random.binomial(1, self.p)
 			logging.debug("Connectome of %s to %s is now: %s" % (name, other_area, self.connectomes[name][other_area]))
 
 		return num_first_winners
