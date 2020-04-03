@@ -143,7 +143,7 @@ class Brain:
 
 		# OutputArea Connectomes:
 		self.output_stimuli_connectomes: Dict[str, Dict[str, List]] = \
-			defaultdict(lambda: defaultdict(lambda: [[0] * OutputArea.n]))
+			defaultdict(lambda: defaultdict(lambda: [0] * OutputArea.n))
 		self.output_connectomes: Dict[str, Dict[str, List]] = \
 			defaultdict(lambda: defaultdict(lambda: [[0] * OutputArea.n for i in range(OutputArea.n)]))
 
