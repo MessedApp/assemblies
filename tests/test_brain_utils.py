@@ -1,10 +1,11 @@
 from brain import Brain
+from non_lazy_brain import NonLazyBrain
 from utils import value_or_default
 
 
 class TestBrainUtils(object):
 
-    def __init__(self, default_p=0.1, default_area_size=10000, default_winners_size=100,
+    def __init__(self, default_p=0.1, default_area_size=1000, default_winners_size=100,
                  default_stimulus_size=100, beta=0.1):
         self.P = default_p
         self.area_size = default_area_size
@@ -30,10 +31,10 @@ class TestBrainUtils(object):
         self._stimuli = []
 
     def create_brain(self, number_of_areas, p=None, area_size=None, winners_size=None, beta=None,
-                     add_output_area=False):
+                     add_output_area=False, non_lazy=True):
         self._init_data()
 
-        self.brain = Brain(value_or_default(p, self.P))
+        self.brain = NonLazyBrain(value_or_default(p, self.P)) if non_lazy else Brain(value_or_default(p, self.P))
         for i in range(1, number_of_areas + 1):
             self._add_area(str(i), area_size, winners_size, beta)
 
