@@ -1,5 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
+from learning.data_set.data_point import DataPoint
+
 
 class DataSet(metaclass=ABCMeta):
     """
@@ -7,11 +9,30 @@ class DataSet(metaclass=ABCMeta):
     based on a binary function, such as f(x) =  x (identity) or f(x, y) = (x + y) % 2.
     """
     @abstractmethod
-    def _next(self):
+    def _next(self) -> DataPoint:
         """
-        Get the next element in the data_set set, if any.
+        Get the next element in the data set, if any.
         :return: int
         """
+        pass
+
+    @abstractmethod
+    def _get_item(self, item) -> DataPoint:
+        """
+        Get the element in the <item> index in the data_set.
+        :return: int
+        """
+        pass
+
+    @abstractmethod
+    def set_noise_probability(self, noise_probability):
+        """
+        Set the noise probability of the data set to a new value.
+        """
+        pass
+
+    @abstractmethod
+    def __getitem__(self, item) -> DataPoint:
         pass
 
     @abstractmethod
@@ -19,7 +40,7 @@ class DataSet(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def __next__(self):
+    def __next__(self) -> DataPoint:
         pass
 
     @property
@@ -27,7 +48,7 @@ class DataSet(metaclass=ABCMeta):
     def domain_size(self):
         """
         Get the domain size (i.e., the number of bits required to represent
-        an item from the domain of the data_set set's function's).
+        an item from the domain of the data set's function's).
         :return: int
         """
         pass

@@ -1,6 +1,8 @@
 from math import log
 
+from learning.data_set.data_point import DataPoint
 from learning.data_set.errors import DataSetSizeError
+from learning.data_set.lib.data_point import DataPointImpl
 from learning.data_set.lib.data_set_base import DataSetBase
 
 
@@ -33,9 +35,12 @@ class ValuesListDataSet(DataSetBase):
     def current_input_value(self):
         return self._value
 
-    def _next(self):
+    def _next(self) -> DataPoint:
         if self._value == 2 ** self._domain_size - 1:
             raise StopIteration()
 
         self._value += 1
-        return self._return_values[self._value]
+        return DataPointImpl(self._value, self._return_values[self._value])
+
+    def _get_item(self, item):
+        return DataPointImpl(item, self._return_values[item])
