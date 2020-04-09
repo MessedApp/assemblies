@@ -10,3 +10,11 @@ class DataSetValueError(Exception):
                f"{self._output_value}, which is not a boolean value."
 
 
+class DataSetSizeError(Exception):
+    def __init__(self, length, *args: object) -> None:
+        super().__init__(*args)
+        self._length = length
+
+    def __str__(self) -> str:
+        return f"Return values list must be of proper length (a power of 2), " \
+               f"got list of length {self._length}"

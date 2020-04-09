@@ -6,11 +6,15 @@ from training.lib.callable_training_set import CallableTrainingSet as _CallableT
 from training.training_set import TrainingSet
 
 
-def create_training_set_from_callable(function: Callable[[int], int],
-                                      domain_size: int) -> TrainingSet:
-    return _CallableTrainingSet(function, domain_size)
+def create_training_set_from_callable(
+        function: Callable[[int], int],
+        domain_size: int,
+        noise_probability: float = 0.) -> TrainingSet:
+    return _CallableTrainingSet(function, domain_size, noise_probability)
 
 
-def create_training_set_from_list(return_values: List[int]) -> TrainingSet:
-    return _ValuesListTrainingSet(return_values)
+def create_training_set_from_list(
+        return_values: List[int],
+        noise_probability: float = 0.) -> TrainingSet:
+    return _ValuesListTrainingSet(return_values, noise_probability)
 

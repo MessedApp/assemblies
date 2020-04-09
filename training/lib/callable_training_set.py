@@ -2,8 +2,8 @@ from training.lib.training_set_base import TrainingSetBase
 
 
 class CallableTrainingSet(TrainingSetBase):
-    def __init__(self, function, domain_size) -> None:
-        super().__init__()
+    def __init__(self, function, domain_size, noise_probability=0.) -> None:
+        super().__init__(noise_probability=noise_probability)
         self._function = function
         self._domain_size = domain_size
         self._value = -1

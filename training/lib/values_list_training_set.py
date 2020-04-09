@@ -1,11 +1,12 @@
 from math import log
 
+from training.errors import DataSetSizeError
 from training.lib.training_set_base import TrainingSetBase
 
 
 class ValuesListTrainingSet(TrainingSetBase):
-    def __init__(self, return_values) -> None:
-        super().__init__()
+    def __init__(self, return_values, noise_probability=0.) -> None:
+        super().__init__(noise_probability=noise_probability)
         self._return_values = return_values
         self._domain_size = self._get_domain_size(return_values)
         self._value = -1
@@ -14,7 +15,7 @@ class ValuesListTrainingSet(TrainingSetBase):
     def _get_domain_size(return_values):
         domain_size = log(len(return_values), 2)
         if not domain_size.is_integer():
-            raise ValueError("Return values list must be of proper length (a power of 2).")
+            raise DataSetSizeError(len(return_values))
 
         return domain_size
 
