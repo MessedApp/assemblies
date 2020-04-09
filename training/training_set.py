@@ -1,7 +1,5 @@
 from abc import ABCMeta, abstractmethod
 
-from training.errors import DataSetValueError
-
 
 class TrainingSet(metaclass=ABCMeta):
     """
@@ -13,14 +11,10 @@ class TrainingSet(metaclass=ABCMeta):
         pass
 
     def __iter__(self):
-        return self
+        pass
 
     def __next__(self):
-        output_value = self._next()
-        if output_value not in (0, 1):
-            raise DataSetValueError(self.current_input_value, output_value)
-
-        return output_value
+        pass
 
     @property
     @abstractmethod

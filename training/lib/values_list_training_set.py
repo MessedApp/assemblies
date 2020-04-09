@@ -1,9 +1,9 @@
 from math import log
 
-from training.training_set import TrainingSet
+from training.lib.training_set_base import TrainingSetBase
 
 
-class ValuesListTrainingSet(TrainingSet):
+class ValuesListTrainingSet(TrainingSetBase):
     def __init__(self, return_values) -> None:
         super().__init__()
         self._return_values = return_values

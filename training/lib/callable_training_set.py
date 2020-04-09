@@ -1,7 +1,7 @@
-from training.training_set import TrainingSet
+from training.lib.training_set_base import TrainingSetBase
 
 
-class CallableTrainingSet(TrainingSet):
+class CallableTrainingSet(TrainingSetBase):
     def __init__(self, function, domain_size) -> None:
         super().__init__()
         self._function = function

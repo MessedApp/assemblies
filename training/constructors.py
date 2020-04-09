@@ -1,6 +1,6 @@
 from typing import Callable, List
 
-from training.lib.ValuesListTrainingSet import ValuesListTrainingSet as _ValuesListTrainingSet
+from training.lib.values_list_training_set import ValuesListTrainingSet as _ValuesListTrainingSet
 from training.lib.callable_training_set import CallableTrainingSet as _CallableTrainingSet
 
 from training.training_set import TrainingSet
