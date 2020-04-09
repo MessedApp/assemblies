@@ -1,6 +1,6 @@
-from brain import Brain, Stimulus, Area
+from brain import Brain, Stimulus, Area, OutputArea
 import logging
-from typing import List, Dict
+from typing import List, Dict, Union
 import numpy as np
 import heapq
 
@@ -43,6 +43,18 @@ class LazyBrain(Brain):
             self.areas[key].stimulus_beta[name] = self.areas[key].beta
         self.stimuli_connectomes[name] = new_connectomes
 
+        new_connectomes: Dict[str, ndarray] = {}
+        for area_name, area in self.output_areas.items():
+            new_connectomes[area_name] = np.random.binomial(1, self.p, (area.n)).astype(dtype='f')
+            self.output_areas[area_name].stimulus_beta[name] = self.output_areas[area_name].beta
+        self.output_stimuli_connectomes[name] = new_connectomes
+
+    def add_output_area(self, name: str) -> None:
+        assert name not in self.areas, "Can't create an output area in this name, an area with this name already exists!"
+        self.output_areas[name] = OutputArea(name)
+
+        self.conectomes_init_output_area(self.output_areas[name], OutputArea.beta)
+
     def add_area(self, name: str, n: int, k: int, beta: float) -> None:
         """Add an area to this brain, randomly connected to all other areas and stimulus.
 
@@ -75,7 +87,25 @@ class LazyBrain(Brain):
             self.areas[name].area_beta[key] = beta
         self.connectomes[name] = new_connectomes
 
-    def project_into(self, area: Area, from_stimuli: List[str], from_areas: List[str]) -> int:
+        # Each output_area[area_beta] gets the beta of the output_area (not the area,
+        # since the betas direction is defined to be the 'to beta').
+        for output_area_name, output_area in self.output_areas.items():
+            self.output_connectomes[name][output_area_name] = \
+                np.random.binomial(1, self.p, (area.n, output_area.n)).astype(dtype='f')
+            output_area.area_beta[name] = output_area.beta
+
+    def conectomes_init_output_area(self, area: Area, beta: float):
+        name = area.name
+        for stim_name, stim_connectomes in self.stimuli_connectomes.items():
+            stimulus: Stimulus = self.stimuli[stim_name]
+            stim_connectomes[name] = np.random.binomial(1, self.p, (stimulus.k, area.n)).astype(dtype='f')
+            self.output_areas[name].stimulus_beta[stim_name] = beta
+
+        for other_area_name, other_area in self.areas.items():
+            self.output_connectomes[other_area_name][name] = np.random.binomial(1, self.p, (other_area.n, area.n)).astype(dtype='f')
+            area.area_beta[other_area_name] = beta
+
+    def project_into(self, area: Union[Area, OutputArea], from_stimuli: List[str], from_areas: List[str]) -> int:
         """Project multiple stimuli and area assemblies into area 'area' at the same time.
 
         :param area: The area projected into
@@ -103,11 +133,11 @@ class LazyBrain(Brain):
             """
             prev_winner_inputs: List[float] = [0.] * area.support_size
             for stim in from_stimuli:
-                stim_inputs = self.stimuli_connectomes[stim][area.name]
+                stim_inputs = self.get_stimulus_connectomes(stim, area.name)
                 for i in range(area.support_size):
                     prev_winner_inputs[i] += stim_inputs[i]
             for from_area in from_areas:
-                connectome = self.connectomes[from_area][area.name]
+                connectome = self.get_area_connectomes(from_area, area.name)
                 for w in self.areas[from_area].winners:
                     for i in range(area.support_size):
                         prev_winner_inputs[i] += connectome[w][i]
@@ -226,19 +256,19 @@ class LazyBrain(Brain):
             """
             nonlocal input_index
             for stim in from_stimuli:
-                if num_first_winners > 0:
+                if num_first_winners > 0 and area.name in self.areas:
                     # resize connectomes stim->area to the new support size
                     self.stimuli_connectomes[stim][area.name] = np.resize(self.stimuli_connectomes[stim][area.name],
                                                                           area.support_size + num_first_winners)
                 # connectomes["first winner"] = how many fired from stim to this first winner
                 for i in range(num_first_winners):
-                    self.stimuli_connectomes[stim][area.name][area.support_size + i] = \
+                    self.get_stimulus_connectomes(stim, area.name)[area.support_size + i] = \
                         first_winner_to_inputs[i][input_index]
                 beta = area.stimulus_beta[stim]
                 # connectomes of winners are now stronger
                 for i in area._new_winners:
-                    self.stimuli_connectomes[stim][area.name][i] *= (1 + beta)
-                logging.debug(f'stimulus {stim} now looks like: {self.stimuli_connectomes[stim][area.name]}')
+                    self.get_stimulus_connectomes(stim, area.name)[i] *= (1 + beta)
+                logging.debug(f'stimulus {stim} now looks like: {self.get_stimulus_connectomes(stim, area.name)}')
                 input_index += 1
 
         def calculate_new_from_area_area_connectomes(num_first_winners: int,
@@ -256,10 +286,11 @@ class LazyBrain(Brain):
             for from_area in from_areas:
                 from_area_support = self.areas[from_area].support_size
                 from_area_winners = self.areas[from_area].winners
-                # add num_first_winners columns to the connectomes
-                self.connectomes[from_area][area.name] = np.pad(self.connectomes[from_area][area.name],
-                                                                ((0, 0), (0, num_first_winners)),
-                                                                'constant', constant_values=0)
+                if area.name in self.areas:
+                    # add num_first_winners columns to the connectomes
+                    self.connectomes[from_area][area.name] = np.pad(self.connectomes[from_area][area.name],
+                                                                    ((0, 0), (0, num_first_winners)),
+                                                                    'constant', constant_values=0)
                 for i in range(num_first_winners):
                     # total_in - how many fired from from_area to this first winner (i)
                     total_in = first_winner_to_inputs[i][input_index]
@@ -268,10 +299,10 @@ class LazyBrain(Brain):
                     for j in range(from_area_support):
                         # j that fired has connectome with weight 1 (in prob 1)
                         if j in sample_indices:
-                            self.connectomes[from_area][area.name][j][area.support_size + i] = 1
+                            self.get_area_connectomes(from_area, area.name)[j][area.support_size + i] = 1
                         # j that is not winner has connectome weight 1 in prob p
                         if j not in from_area_winners:
-                            self.connectomes[from_area][area.name][j][area.support_size + i] = \
+                            self.get_area_connectomes(from_area, area.name)[j][area.support_size + i] = \
                                 np.random.binomial(1, self.p)
                         # j that is a winner and did not fire has connectome 0 (since otherwise, it would fire)
 
@@ -279,9 +310,9 @@ class LazyBrain(Brain):
                 # connectomes of winners are now stronger
                 for i in area._new_winners:
                     for j in from_area_winners:
-                        self.connectomes[from_area][area.name][j][i] *= (1.0 + beta)
+                        self.get_area_connectomes(from_area, area.name)[j][i] *= (1.0 + beta)
                 logging.debug(f'Connectome of {from_area} to {area.name} is now '
-                              f'{self.connectomes[from_area][area.name]}')
+                              f'{self.get_area_connectomes(from_area, area.name)}')
                 input_index += 1
 
         def calculate_new_all_area_area_connectomes(num_first_winners: int) -> None:
@@ -295,25 +326,27 @@ class LazyBrain(Brain):
                 # expand the other_area->area connectomes for areas that did not fire
                 if other_area not in from_areas:
                     # add num_first_winners columns to self.connectomes[other_area][name]
-                    self.connectomes[other_area][area.name] = np.pad(self.connectomes[other_area][area.name],
-                                                                     ((0, 0), (0, num_first_winners)), 'constant',
-                                                                     constant_values=0)
+                    if area.name not in self.output_areas:
+                        self.connectomes[other_area][area.name] = np.pad(self.connectomes[other_area][area.name],
+                                                                         ((0, 0), (0, num_first_winners)), 'constant',
+                                                                         constant_values=0)
                     for j in range(self.areas[other_area].support_size):
                         for i in range(area.support_size, area._new_support_size):
                             # for all new neurons in support, add connectome from other_area with weight 1 in prob p
-                            self.connectomes[other_area][area.name][j][i] = np.random.binomial(1, self.p)
+                            self.get_area_connectomes(other_area, area.name)[j][i] = np.random.binomial(1, self.p)
 
-                # expand the area->other_area connectomes for all areas
-                # for all new neurons in support, add connectomes to other areas with weight 1 in prob p
-                self.connectomes[area.name][other_area] = np.pad(self.connectomes[area.name][other_area],
-                                                                 ((0, num_first_winners), (0, 0)), 'constant',
-                                                                 constant_values=0)
-                columns = len(self.connectomes[area.name][other_area][0])
-                for i in range(area.support_size, area._new_support_size):
-                    for j in range(columns):
-                        self.connectomes[area.name][other_area][i][j] = np.random.binomial(1, self.p)
-                logging.debug(f'Connectome of {area.name} to {other_area} is now: '
-                              f'{self.connectomes[area.name][other_area]}')
+                if area.name not in self.output_areas:
+                    # expand the area->other_area connectomes for all areas
+                    # for all new neurons in support, add connectomes to other areas with weight 1 in prob p
+                    self.connectomes[area.name][other_area] = np.pad(self.connectomes[area.name][other_area],
+                                                                     ((0, num_first_winners), (0, 0)), 'constant',
+                                                                     constant_values=0)
+                    columns = len(self.connectomes[area.name][other_area][0])
+                    for i in range(area.support_size, area._new_support_size):
+                        for j in range(columns):
+                            self.connectomes[area.name][other_area][i][j] = np.random.binomial(1, self.p)
+                    logging.debug(f'Connectome of {area.name} to {other_area} is now: '
+                                  f'{self.connectomes[area.name][other_area]}')
 
         prev_winner_inputs: List[float] = calc_prev_winners_input()
         input_sizes = calculate_input_sizes()
