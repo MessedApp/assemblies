@@ -1,35 +1,31 @@
-import unittest
-
-from tests.test_brain_utils import TestBrainUtils
+from tests.test_non_lazy_brain import TestNonLazyBrain
 from utils import get_matrix_max, get_matrix_min
 
 
-class TestProject(unittest.TestCase):
+class TestProject(TestNonLazyBrain):
 
     def test_project_from_area_to_itself(self):
-        utils = TestBrainUtils()
-        brain = utils.create_and_stimulate_brain(number_of_areas=1, number_of_stimulated_areas=1)
+        brain = self.utils.create_and_stimulate_brain(number_of_areas=1, number_of_stimulated_areas=1)
 
-        area = utils.area0
+        area = self.utils.area0
         winners_before_projection = area.winners
         connectomes_before_projection = brain.connectomes[area.name][area.name]
-        self.assertEqual(utils.winners_size, len(winners_before_projection))
+        self.assertEqual(self.utils.winners_size, len(winners_before_projection))
         self.assertEqual(1, get_matrix_max(connectomes_before_projection))
         self.assertEqual(0, get_matrix_min(connectomes_before_projection))
 
         brain.project(area_to_area={area.name: [area.name]}, stim_to_area={})
         connectomes_after_projection = brain.connectomes[area.name][area.name]
-        self.assertEqual(utils.winners_size, len(area.winners))
+        self.assertEqual(self.utils.winners_size, len(area.winners))
         self.assertNotEqual(connectomes_after_projection, area.winners)
-        self.assertAlmostEqual((1 + utils.beta) * 1, get_matrix_max(connectomes_after_projection))
+        self.assertAlmostEqual((1 + self.utils.beta) * 1, get_matrix_max(connectomes_after_projection))
         self.assertEqual(0, get_matrix_min(connectomes_after_projection))
 
     def test_project_from_area_to_another_area(self):
-        utils = TestBrainUtils()
-        brain = utils.create_and_stimulate_brain(number_of_areas=2, number_of_stimulated_areas=1)
+        brain = self.utils.create_and_stimulate_brain(number_of_areas=2, number_of_stimulated_areas=1)
 
-        source_area = utils.area0
-        target_area = utils.area1
+        source_area = self.utils.area0
+        target_area = self.utils.area1
 
         self.assertEqual([], target_area.winners)
 
@@ -40,11 +36,11 @@ class TestProject(unittest.TestCase):
         self.assertEqual(0, get_matrix_min(connectomes_after_projection))
 
     def test_project_from_area_to_output_area(self):
-        utils = TestBrainUtils()
-        brain = utils.create_and_stimulate_brain(number_of_areas=1, number_of_stimulated_areas=1, add_output_area=True)
+        brain = self.utils.create_and_stimulate_brain(number_of_areas=1, number_of_stimulated_areas=1,
+                                                      add_output_area=True)
 
-        origin_area = utils.area0
-        output_area = utils.output_area
+        origin_area = self.utils.area0
+        output_area = self.utils.output_area
 
         self.assertEqual([], output_area.winners)
 
