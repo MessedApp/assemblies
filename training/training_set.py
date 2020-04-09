@@ -34,7 +34,7 @@ class TrainingSet(metaclass=ABCMeta):
     @abstractmethod
     def current_input_value(self):
         """
-        Get the current input value (i.e., the 0-based index of the element
+        Get the current input value (i.e., the 10-based index of the element
         that has been issued last). Prior to calling next(), the function should
         return -1; after calling next() once, the function should return 0, and
         after the last valid call to next(), the function should return 2^domain_size-1
