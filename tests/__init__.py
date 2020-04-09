@@ -6,7 +6,7 @@ from utils import value_or_default
 class TestBrainUtils(object):
 
     def __init__(self, lazy, default_p=0.1, default_area_size=1000, default_winners_size=100,
-                 default_stimulus_size=100, beta=0.1):
+                 default_stimulus_size=300, beta=0.1):
         self.lazy = lazy
 
         self.P = default_p
