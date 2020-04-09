@@ -1,9 +1,9 @@
 from abc import ABCMeta, abstractmethod
 
 
-class TrainingSet(metaclass=ABCMeta):
+class DataSet(metaclass=ABCMeta):
     """
-    An abstract class for an iterator defining the training set for a brain,
+    An abstract class for an iterator defining the data set for a brain,
     based on a binary function, such as f(x) =  x (identity) or f(x, y) = (x + y) % 2.
     """
     @abstractmethod
@@ -14,9 +14,11 @@ class TrainingSet(metaclass=ABCMeta):
         """
         pass
 
+    @abstractmethod
     def __iter__(self):
         pass
 
+    @abstractmethod
     def __next__(self):
         pass
 

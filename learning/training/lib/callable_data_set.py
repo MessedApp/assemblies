@@ -1,7 +1,7 @@
-from training.lib.training_set_base import TrainingSetBase
+from learning.training.lib.data_set_base import DataSetBase
 
 
-class CallableTrainingSet(TrainingSetBase):
+class CallableDataSet(DataSetBase):
     """
     An iterator defining the training set for a brain, based on an appropriate
     Callable. For example, given binary functions such as f(x) =  x (identity)

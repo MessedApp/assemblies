@@ -1,10 +1,10 @@
 from math import log
 
-from training.errors import DataSetSizeError
-from training.lib.training_set_base import TrainingSetBase
+from learning.training.errors import DataSetSizeError
+from learning.training.lib.data_set_base import DataSetBase
 
 
-class ValuesListTrainingSet(TrainingSetBase):
+class ValuesListDataSet(DataSetBase):
     """
     An iterator defining the training set for a brain, based on a list of output
     values of binary function. For example, given binary function such as
