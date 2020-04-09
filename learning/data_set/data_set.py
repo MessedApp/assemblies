@@ -1,6 +1,10 @@
 from abc import ABCMeta, abstractmethod
+from collections import namedtuple
 
 from learning.data_set.data_point import DataPoint
+
+
+DataSets = namedtuple('DataSets', ['training_set', 'testing_set'])
 
 
 class DataSet(metaclass=ABCMeta):
@@ -32,3 +36,5 @@ class DataSet(metaclass=ABCMeta):
         :return: int
         """
         pass
+
+
