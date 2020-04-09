@@ -18,3 +18,17 @@ class DataSetSizeError(Exception):
     def __str__(self) -> str:
         return f"Return values list must be of proper length (a power of 2), " \
                f"got list of length {self._length}"
+
+
+class MaskValueError(Exception):
+    def __init__(self, index, value, *args: object) -> None:
+        super().__init__(*args)
+        self._index = index
+        self._value = value
+
+    def __str__(self) -> str:
+        return f"Received an invalid value for a boolean mask: " \
+               f"at index {self._index} returned value " \
+               f"{self._value}, which is not a boolean value."
+
+

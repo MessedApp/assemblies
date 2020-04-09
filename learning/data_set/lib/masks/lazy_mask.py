@@ -1,7 +1,9 @@
 import random
 
+from learning.data_set.mask import Mask
 
-class Mask:
+
+class LazyMask(Mask):
     def __init__(self, percentage: float, seed: int = None) -> None:
         """
         Create a mask that contains the given percentage of "1"s in random
