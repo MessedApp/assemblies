@@ -1,5 +1,5 @@
 from brain import OutputArea
-from tests.test_lazy_brain import TestLazyBrain
+from tests.lazy_brain import TestLazyBrain
 from utils import get_matrix_max, get_matrix_min
 
 

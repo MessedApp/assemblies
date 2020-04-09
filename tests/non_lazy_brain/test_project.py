@@ -1,7 +1,7 @@
 from unittest import skip
 
 from brain import OutputArea
-from tests.test_non_lazy_brain import TestNonLazyBrain
+from tests.non_lazy_brain import TestNonLazyBrain
 from utils import get_matrix_max, get_matrix_min
 
 
