@@ -1,12 +1,12 @@
 from math import log
 
-from learning.training.errors import DataSetSizeError
-from learning.training.lib.data_set_base import DataSetBase
+from learning.data_set.errors import DataSetSizeError
+from learning.data_set.lib.data_set_base import DataSetBase
 
 
 class ValuesListDataSet(DataSetBase):
     """
-    An iterator defining the training set for a brain, based on a list of output
+    An iterator defining the data_set set for a brain, based on a list of output
     values of binary function. For example, given binary function such as
     f(x) =  x (identity) or f(x, y) = (x + y) % 2, the list of values should be
     [0, 1] and [0, 1, 1, 0] (respectively).

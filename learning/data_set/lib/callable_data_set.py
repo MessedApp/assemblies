@@ -1,9 +1,9 @@
-from learning.training.lib.data_set_base import DataSetBase
+from learning.data_set.lib.data_set_base import DataSetBase
 
 
 class CallableDataSet(DataSetBase):
     """
-    An iterator defining the training set for a brain, based on an appropriate
+    An iterator defining the data_set set for a brain, based on an appropriate
     Callable. For example, given binary functions such as f(x) =  x (identity)
     and f(x, y) = (x + y) % 2, appropriate Callables for example are
     lambda x: x and lambda x: bin(x)[2:].count('1') % 2 (respectively).

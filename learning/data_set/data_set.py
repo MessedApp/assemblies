@@ -9,7 +9,7 @@ class DataSet(metaclass=ABCMeta):
     @abstractmethod
     def _next(self):
         """
-        Get the next element in the training set, if any.
+        Get the next element in the data_set set, if any.
         :return: int
         """
         pass
@@ -27,7 +27,7 @@ class DataSet(metaclass=ABCMeta):
     def domain_size(self):
         """
         Get the domain size (i.e., the number of bits required to represent
-        an item from the domain of the training set's function's).
+        an item from the domain of the data_set set's function's).
         :return: int
         """
         pass

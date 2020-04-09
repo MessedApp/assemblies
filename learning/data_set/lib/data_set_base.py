@@ -2,13 +2,13 @@ from abc import ABCMeta
 
 import numpy as np
 
-from learning.training.errors import DataSetValueError
-from learning.training.data_set import DataSet
+from learning.data_set.errors import DataSetValueError
+from learning.data_set.data_set import DataSet
 
 
 class DataSetBase(DataSet, metaclass=ABCMeta):
     """
-    An abstract class for an iterator defining the training set for a brain,
+    An abstract class for an iterator defining the data_set set for a brain,
     based on a binary function, such as f(x) =  x (identity) or f(x, y) = (x + y) % 2.
     This class contains any and all shared logic between different types of DataSets.
     """
