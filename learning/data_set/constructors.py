@@ -1,7 +1,7 @@
 from typing import Callable, List
 
-from learning.data_set.lib.values_list_data_set import ValuesListDataSet as _ValuesListDataSet
-from learning.data_set.lib.callable_data_set import CallableDataSet as _CallableDataSet
+from learning.data_set.lib.basic_types.values_list_data_set import ValuesListDataSet as _ValuesListDataSet
+from learning.data_set.lib.basic_types.callable_data_set import CallableDataSet as _CallableDataSet
 
 from learning.data_set.data_set import DataSet
 

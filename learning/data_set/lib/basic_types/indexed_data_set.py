@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 from learning.data_set.data_point import DataPoint
-from learning.data_set.lib.data_set_base import DataSetBase
+from learning.data_set.lib.basic_types.data_set_base import DataSetBase
 
 
 class IndexedDataSet(DataSetBase, metaclass=ABCMeta):
