@@ -3,10 +3,10 @@ from math import log
 from learning.data_set.data_point import DataPoint
 from learning.data_set.errors import DataSetSizeError
 from learning.data_set.lib.data_point import DataPointImpl
-from learning.data_set.lib.data_set_base import DataSetBase
+from learning.data_set.lib.indexed_data_set import IndexedDataSet
 
 
-class ValuesListDataSet(DataSetBase):
+class ValuesListDataSet(IndexedDataSet):
     """
     An iterator defining the data_set set for a brain, based on a list of output
     values of binary function. For example, given binary function such as
@@ -17,7 +17,6 @@ class ValuesListDataSet(DataSetBase):
         super().__init__(noise_probability=noise_probability)
         self._return_values = return_values
         self._domain_size = self._get_domain_size(return_values)
-        self._value = -1
 
     @staticmethod
     def _get_domain_size(return_values):
@@ -30,10 +29,6 @@ class ValuesListDataSet(DataSetBase):
     @property
     def domain_size(self):
         return self._domain_size
-
-    @property
-    def current_input_value(self):
-        return self._value
 
     def _next(self) -> DataPoint:
         if self._value == 2 ** self._domain_size - 1:

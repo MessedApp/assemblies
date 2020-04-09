@@ -1,10 +1,11 @@
-from abc import ABCMeta
+from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
 from learning.data_set.data_point import DataPoint
 from learning.data_set.errors import DataSetValueError
 from learning.data_set.data_set import DataSet
+from learning.data_set.lib.data_point import DataPointImpl
 
 
 class DataSetBase(DataSet, metaclass=ABCMeta):
@@ -16,27 +17,31 @@ class DataSetBase(DataSet, metaclass=ABCMeta):
     def __init__(self, noise_probability=0.) -> None:
         super().__init__()
         self._noise_probability = noise_probability
+        self._value = -1
+
+    @abstractmethod
+    def _next(self) -> DataPoint:
+        """
+        Get the next element in the data set, if any.
+        :return: int
+        """
+        pass
 
     def __iter__(self):
         return self
 
-    def __getitem__(self, item) -> DataPoint:
-        if not 0 <= item < 2 ** self.domain_size:
-            raise IndexError(f"Item of index {item} is out of range (choose an"
-                             f"index between 0 and {2 ** self.domain_size})")
-
-        return self._process_output_values(item, self._get_item(item))
-
     def __next__(self) -> DataPoint:
-        output_value = self._next()
-        return self._process_output_values(self.current_input_value, output_value)
+        data_point = self._next()
+        return self._process_output_values(data_point)
 
-    def _process_output_values(self, input_value, output_value):
-        if output_value not in (0, 1):
-            raise DataSetValueError(input_value, output_value)
+    def _process_output_values(self, data_point: DataPoint):
+        if data_point.output not in (0, 1):
+            raise DataSetValueError(data_point.input, data_point.output)
 
-        noise = np.random.binomial(1, self._noise_probability)
-        return output_value ^ noise
+        if self._noise_probability and np.random.binomial(1, self._noise_probability):
+            return DataPointImpl(data_point.input, data_point.output ^ 1)
+        return data_point
 
     def set_noise_probability(self, noise_probability):
         self._noise_probability = noise_probability
+

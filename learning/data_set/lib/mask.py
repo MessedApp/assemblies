@@ -18,10 +18,17 @@ class Mask:
         self._base_seed = seed or random.randint(2*20, 2*30)
         self._random = random.Random()
 
-    def get_mask(self, index) -> bool:
+    def in_training_set(self, index) -> bool:
         """
-        Get the value of the mask for the given index.
+        Get the value of the mask for the training set.
         :return: True if the index is included in the mask, or False if it isn't.
         """
         self._random.seed(self._base_seed + index)
         return self._random.random() < self._percentage
+
+    def in_testing_set(self, index) -> bool:
+        """
+        Get the value of the mask for the testing set.
+        :return: True if the index is included in the mask, or False if it isn't.
+        """
+        return not self.in_training_set(index)
