@@ -5,6 +5,12 @@ from training.lib.training_set_base import TrainingSetBase
 
 
 class ValuesListTrainingSet(TrainingSetBase):
+    """
+    An iterator defining the training set for a brain, based on a list of output
+    values of binary function. For example, given binary function such as
+    f(x) =  x (identity) or f(x, y) = (x + y) % 2, the list of values should be
+    [0, 1] and [0, 1, 1, 0] (respectively).
+    """
     def __init__(self, return_values, noise_probability=0.) -> None:
         super().__init__(noise_probability=noise_probability)
         self._return_values = return_values
@@ -17,7 +23,7 @@ class ValuesListTrainingSet(TrainingSetBase):
         if not domain_size.is_integer():
             raise DataSetSizeError(len(return_values))
 
-        return domain_size
+        return int(domain_size)
 
     @property
     def domain_size(self):
