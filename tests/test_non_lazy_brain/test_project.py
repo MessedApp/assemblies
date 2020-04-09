@@ -56,23 +56,24 @@ class TestProject(TestNonLazyBrain):
 
     def test_project_from_area_to_output_area_with_size_2(self):
         # Setting up desired OutputArea size
-        OutputArea.n = 2
-        OutputArea.k = 1
+        with self.utils.change_output_area_settings(n=2, k=1):
+            OutputArea.n = 2
+            OutputArea.k = 1
 
-        brain = self.utils.create_and_stimulate_brain(number_of_areas=1, number_of_stimulated_areas=1,
-                                                      add_output_area=True)
+            brain = self.utils.create_and_stimulate_brain(number_of_areas=1, number_of_stimulated_areas=1,
+                                                          add_output_area=True)
 
-        origin_area = self.utils.area0
-        output_area = self.utils.output_area
+            origin_area = self.utils.area0
+            output_area = self.utils.output_area
 
-        self.assertEqual([], output_area.winners)
+            self.assertEqual([], output_area.winners)
 
-        brain.project(area_to_area={origin_area.name: [output_area.name]}, stim_to_area={})
-        connectome_after_projection = brain.output_connectomes[origin_area.name][output_area.name]
-        self.assertEqual(origin_area.k, len(origin_area.winners))
-        self.assertEqual(1, len(output_area.winners))
-        self.assertAlmostEqual((1 + output_area.beta) * 1, get_matrix_max(connectome_after_projection))
-        self.assertEqual(0, get_matrix_min(connectome_after_projection))
+            brain.project(area_to_area={origin_area.name: [output_area.name]}, stim_to_area={})
+            connectome_after_projection = brain.output_connectomes[origin_area.name][output_area.name]
+            self.assertEqual(origin_area.k, len(origin_area.winners))
+            self.assertEqual(1, len(output_area.winners))
+            self.assertAlmostEqual((1 + output_area.beta) * 1, get_matrix_max(connectome_after_projection))
+            self.assertEqual(0, get_matrix_min(connectome_after_projection))
 
     @skip('Stimuli->area connectomes are currently implemented as a 2D array instead of 1D')
     def test_project_from_stimulus_to_output_area(self):

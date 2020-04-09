@@ -1,3 +1,6 @@
+from contextlib import contextmanager
+
+from brain import OutputArea
 from lazy_brain import LazyBrain
 from non_lazy_brain import NonLazyBrain
 from utils import value_or_default
@@ -73,3 +76,16 @@ class TestBrainUtils(object):
         self.brain.add_stimulus(name=name,
                                 k=value_or_default(k, self.stimulus_size))
         self._stimuli.append(name)
+
+    @staticmethod
+    @contextmanager
+    def change_output_area_settings(n=None, k=None, beta=None):
+        original_settings = (OutputArea.n, OutputArea.k, OutputArea.beta)
+        if n is not None:
+            OutputArea.n = n
+        if k is not None:
+            OutputArea.k = k
+        if beta is not None:
+            OutputArea.beta = beta
+        yield
+        OutputArea.n, OutputArea.k, OutputArea.beta = original_settings
