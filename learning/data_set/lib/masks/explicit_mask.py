@@ -1,6 +1,6 @@
 from typing import List
 
-from learning.data_set.errors import MaskValueError
+from learning.data_set.errors import MaskValueError, MaskIndexError
 from learning.data_set.mask import Mask
 
 
@@ -13,8 +13,10 @@ class ExplicitMask(Mask):
         super().__init__()
         self._mask_values = mask_values
 
-    @staticmethod
-    def _validate_mask_value(index, mask_value):
+    def _validate_mask_value(self, index, mask_value):
+        if index >= len(self._mask_values):
+            raise MaskIndexError(index, len(self._mask_values))
+
         if mask_value not in (0, 1):
             raise MaskValueError(index, mask_value)
 

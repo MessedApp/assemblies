@@ -32,6 +32,18 @@ class MaskValueError(Exception):
                f"{self._value}, which is not a boolean value."
 
 
+class MaskIndexError(Exception):
+    def __init__(self, index, length, *args: object) -> None:
+        super().__init__(*args)
+        self._index = index
+        self._length = length
+
+    def __str__(self) -> str:
+        return f"Mask index out of range: can't access mask at index " \
+               f"{self._index}, mask only contains value for indices 0 to " \
+               f"{self._length - 1}"
+
+
 class InvalidFunctionError(Exception):
     def __init__(self, num_of_params, *args: object) -> None:
         super().__init__(*args)
