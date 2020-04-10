@@ -1,11 +1,17 @@
 from unittest import TestCase
 
 from learning.data_set.constructors import create_data_set_from_callable
-from learning.data_set.errors import DataSetValueError
+from learning.data_set.errors import DataSetValueError, InvalidFunctionError
 
 
 class TestCallableDataSet(TestCase):
-    def test_data_set_with_list_of_2_works(self):
+    def test_data_set_function_with_no_arguments_fails(self):
+        self.assertRaises(InvalidFunctionError, create_data_set_from_callable, lambda: 1, 1)
+
+    def test_data_set_function_with_2_arguments_fails(self):
+        self.assertRaises(InvalidFunctionError, create_data_set_from_callable, lambda x, y: x + y, 2)
+
+    def test_data_set_with_simple_callable_works(self):
         s = create_data_set_from_callable(lambda x: 1 - x, 1)
         self.assertEqual(1, s.domain_size)
         self.assertEqual(1, next(s).output)
@@ -17,7 +23,7 @@ class TestCallableDataSet(TestCase):
         self.assertEqual(1, next(s).output)
         self.assertRaises(DataSetValueError, next, s)
 
-    def test_data_set_with_list_of_16_works(self):
+    def test_data_set_with_function_of_domain_size_4_works(self):
         expected = [
             1, 0, 1, 0,
             1, 0, 1, 0,

@@ -1,4 +1,7 @@
+from inspect import signature
+
 from learning.data_set.data_point import DataPoint
+from learning.data_set.errors import InvalidFunctionError
 from learning.data_set.lib.data_point import DataPointImpl
 from learning.data_set.lib.basic_types.indexed_data_set import IndexedDataSet
 
@@ -14,8 +17,15 @@ class CallableDataSet(IndexedDataSet):
     """
     def __init__(self, function, domain_size, noise_probability=0.) -> None:
         super().__init__(noise_probability=noise_probability)
+        self._validate_function(function)
         self._function = function
         self._domain_size = domain_size
+
+    @staticmethod
+    def _validate_function(function):
+        sig = signature(function)
+        if len(sig.parameters) != 1:
+            raise InvalidFunctionError(len(sig.parameters))
 
     @property
     def domain_size(self):

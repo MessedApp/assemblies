@@ -32,3 +32,13 @@ class MaskValueError(Exception):
                f"{self._value}, which is not a boolean value."
 
 
+class InvalidFunctionError(Exception):
+    def __init__(self, num_of_params, *args: object) -> None:
+        super().__init__(*args)
+        self._num_of_params = num_of_params
+
+    def __str__(self) -> str:
+        return f"Function must receive exactly one argument! Given function " \
+               f"expects {self._num_of_params} arguments."
+
+
