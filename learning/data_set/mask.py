@@ -2,6 +2,10 @@ from abc import ABCMeta, abstractmethod
 
 
 class Mask(metaclass=ABCMeta):
+    """
+    Mask is an object used to split a data set into a training set and a testing
+    set.
+    """
     @abstractmethod
     def in_training_set(self, index) -> bool:
         """

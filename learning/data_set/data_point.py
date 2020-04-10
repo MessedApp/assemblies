@@ -2,6 +2,10 @@ from abc import abstractmethod, ABCMeta
 
 
 class DataPoint(metaclass=ABCMeta):
+    """
+    A data point contains the information of (input, output).
+    A data set is made of data points.
+    """
     @property
     @abstractmethod
     def input(self):

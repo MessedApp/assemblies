@@ -8,6 +8,15 @@ from learning.data_set.mask import Mask
 
 
 class TrainingSet(PartialDataSet):
+    """
+    TrainingSet is the partial data set representing the set used for the
+    training phase.
+    A training set can contain noise, and is not ordered. The length of the
+    training set determines how many data points the iterator will output
+    overall. On each iteration a data point from the partial data set dedicated
+    to the training phase will be outputted at random, so repetitions are likely,
+    and are expected to occur if the training set is set to be long enough.
+    """
     def __init__(self, base_data_set: DataSet, mask: Mask, length: int = None,
                  noise_probability: float = 0.) -> None:
         super().__init__(base_data_set, mask, noise_probability)

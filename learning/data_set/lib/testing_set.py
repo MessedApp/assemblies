@@ -5,6 +5,13 @@ from learning.data_set.mask import Mask
 
 
 class TestingSet(PartialDataSet):
+    """
+    TestingSet is the partial data set representing the set used for the
+    testing phase.
+    A testing set does not contain noise (by definition), and is ordered.
+    Iterating over the testing set will output data points from the portion of
+    the data dedicated to testing.
+    """
     def __init__(self, base_data_set: DataSet, mask: Mask) -> None:
         super().__init__(base_data_set, mask, noise_probability=0.)
 
