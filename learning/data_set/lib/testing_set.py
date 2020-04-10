@@ -16,10 +16,17 @@ class TestingSet(PartialDataSet):
         super().__init__(base_data_set, mask, noise_probability=0.)
 
     def _next(self) -> DataPoint:
+        if self._value == 2 ** self._base_data_set.domain_size - 1:
+            self.reset()
+            raise StopIteration()
+
+        self._value += 1
         data_point = next(self._base_data_set)
         mask_value = self._mask.in_testing_set(self._value)
 
         while not mask_value:
+            self._value += 1
             data_point = next(self._base_data_set)
+            mask_value = self._mask.in_testing_set(self._value)
 
         return data_point

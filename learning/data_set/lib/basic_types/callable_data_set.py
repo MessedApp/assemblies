@@ -33,6 +33,7 @@ class CallableDataSet(IndexedDataSet):
 
     def _next(self) -> DataPoint:
         if self._value == 2 ** self._domain_size - 1:
+            self.reset()
             raise StopIteration()
 
         self._value += 1

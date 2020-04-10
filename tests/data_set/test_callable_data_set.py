@@ -46,7 +46,21 @@ class TestCallableDataSet(TestCase):
         s = create_data_set_from_callable(lambda x: (1 - x) % 2, 4)
         for i, data_point in enumerate(s):
             self.assertEqual(expected[i], data_point.output)
-        self.assertRaises(StopIteration, next, s)
+
+    def test_data_set_is_reusable(self):
+        expected = [
+            1, 0, 1, 0,
+            1, 0, 1, 0,
+            1, 0, 1, 0,
+            1, 0, 1, 0
+        ]
+        s = create_data_set_from_callable(lambda x: (1 - x) % 2, 4)
+        for i, data_point in enumerate(s):
+            self.assertEqual(expected[i], data_point.output)
+
+        # reuse
+        for i, data_point in enumerate(s):
+            self.assertEqual(expected[i], data_point.output)
 
     def test_data_set_with_full_noise_flips_all_results(self):
         expected_not_noisy = [
@@ -58,7 +72,6 @@ class TestCallableDataSet(TestCase):
         s = create_data_set_from_callable(lambda x: (1 - x) % 2, 4, noise_probability=1)
         for i, data_point in enumerate(s):
             self.assertEqual(expected_not_noisy[i] ^ 1, data_point.output)
-        self.assertRaises(StopIteration, next, s)
 
     def test_data_set_with_noise_flips_some_results(self):
         expected_not_noisy = [
@@ -74,4 +87,3 @@ class TestCallableDataSet(TestCase):
         #       If it does, run again to verify it was one of those extreme cases.
         self.assertLess(0, count_flipped)
         self.assertGreater(len(expected_not_noisy), count_flipped)
-        self.assertRaises(StopIteration, next, s)

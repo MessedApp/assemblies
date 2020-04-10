@@ -15,7 +15,7 @@ class LazyMask(Mask):
         indices).
         """
         super().__init__()
-        assert 0 < percentage <= 1, "Percentage must be a number between 0 and 1."
+        assert 0 <= percentage <= 1, "Percentage must be a number between 0 and 1."
         self._percentage = percentage
         self._base_seed = seed or random.randint(2*20, 2*30)
         self._random = random.Random()

@@ -6,8 +6,8 @@ from learning.data_set.lib.basic_types.callable_data_set import CallableDataSet 
 from learning.data_set.data_set import DataSet, DataSets
 from learning.data_set.lib.masks.lazy_mask import LazyMask as _LazyMask
 from learning.data_set.lib.masks.explicit_mask import ExplicitMask as _ExplicitMask
-from learning.data_set.lib.testing_set import TestingSet
-from learning.data_set.lib.training_set import TrainingSet
+from learning.data_set.lib.testing_set import TestingSet as _TestingSet
+from learning.data_set.lib.training_set import TrainingSet as _TrainingSet
 from learning.data_set.mask import Mask
 
 
@@ -105,8 +105,8 @@ def create_training_and_testing_sets_from_callable(
     :return: The data sets representing these parameters.
     """
     base_data_set = create_data_set_from_callable(data_set_function, domain_size, noise_probability)
-    return DataSets(training_set=TrainingSet(base_data_set, mask, training_set_length, noise_probability),
-                    testing_set=TestingSet(base_data_set, mask))
+    return DataSets(training_set=_TrainingSet(base_data_set, mask, training_set_length, noise_probability),
+                    testing_set=_TestingSet(base_data_set, mask))
 
 
 def create_training_and_testing_sets_from_list(
@@ -134,8 +134,8 @@ def create_training_and_testing_sets_from_list(
     :return: The data sets representing these parameters.
     """
     base_data_set = create_data_set_from_list(data_set_return_values, noise_probability)
-    return DataSets(training_set=TrainingSet(base_data_set, mask, training_set_length, noise_probability),
-                    testing_set=TestingSet(base_data_set, mask))
+    return DataSets(training_set=_TrainingSet(base_data_set, mask, training_set_length, noise_probability),
+                    testing_set=_TestingSet(base_data_set, mask))
 
 
 def create_training_set_from_callable(
@@ -163,7 +163,7 @@ def create_training_set_from_callable(
     """
 
     base_data_set = create_data_set_from_callable(data_set_function, domain_size, noise_probability)
-    return TrainingSet(base_data_set, mask, training_set_length, noise_probability)
+    return _TrainingSet(base_data_set, mask, training_set_length, noise_probability)
 
 
 def create_testing_set_from_callable(
@@ -181,7 +181,7 @@ def create_testing_set_from_callable(
     :return: The data sets representing these parameters.
     """
     base_data_set = create_data_set_from_callable(data_set_function, domain_size)
-    return TestingSet(base_data_set, mask)
+    return _TestingSet(base_data_set, mask)
 
 
 def create_training_set_from_list(
@@ -207,7 +207,7 @@ def create_training_set_from_list(
     :return: The data sets representing these parameters.
     """
     base_data_set = create_data_set_from_list(data_set_return_values, noise_probability)
-    return TrainingSet(base_data_set, mask, training_set_length, noise_probability)
+    return _TrainingSet(base_data_set, mask, training_set_length, noise_probability)
 
 
 def create_testing_set_from_list(
@@ -224,4 +224,4 @@ def create_testing_set_from_list(
     :return: The data sets representing these parameters.
     """
     base_data_set = create_data_set_from_list(data_set_return_values)
-    return TestingSet(base_data_set, mask)
+    return _TestingSet(base_data_set, mask)

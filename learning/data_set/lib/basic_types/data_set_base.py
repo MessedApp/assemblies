@@ -19,6 +19,9 @@ class DataSetBase(DataSet, metaclass=ABCMeta):
         self._noise_probability = noise_probability
         self._value = -1
 
+    def reset(self):
+        self._value = -1
+
     @abstractmethod
     def _next(self) -> DataPoint:
         """
@@ -28,6 +31,7 @@ class DataSetBase(DataSet, metaclass=ABCMeta):
         pass
 
     def __iter__(self):
+        self.reset()
         return self
 
     def __next__(self) -> DataPoint:

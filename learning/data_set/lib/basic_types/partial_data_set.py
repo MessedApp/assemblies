@@ -16,6 +16,11 @@ class PartialDataSet(DataSetBase, metaclass=ABCMeta):
         self._base_data_set = base_data_set
         self._mask = mask
 
+    def __iter__(self):
+        self.reset()
+        self._base_data_set.reset()
+        return self
+
     @property
     def domain_size(self):
         return self._base_data_set.domain_size
