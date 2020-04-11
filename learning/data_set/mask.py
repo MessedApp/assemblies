@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 
 class Mask(metaclass=ABCMeta):
     """
-    Mask is an object used to split a data set into a training set and a testing
+    Mask is an object used to split a data set into a training set and a test
     set.
     """
     @abstractmethod
@@ -15,9 +15,9 @@ class Mask(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def in_testing_set(self, index) -> bool:
+    def in_test_set(self, index) -> bool:
         """
-        Get the value of the mask for the testing set.
+        Get the value of the mask for the test set.
         :return: True if the index is included in the mask, or False if it isn't.
         """
         pass

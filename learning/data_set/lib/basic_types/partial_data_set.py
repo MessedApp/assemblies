@@ -7,7 +7,7 @@ from learning.data_set.mask import Mask
 
 class PartialDataSet(DataSetBase, metaclass=ABCMeta):
     """
-    A base class for training and testing masks, applying a mask over a given
+    A base class for training and test masks, applying a mask over a given
     data set to create a partial data set.
     """
     def __init__(self, base_data_set: DataSet, mask: Mask,

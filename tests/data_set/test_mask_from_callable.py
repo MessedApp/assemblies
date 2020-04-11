@@ -14,17 +14,17 @@ class TestMaskFromCallable(TestCase):
     def test_mask_with_non_boolean_values_fails(self):
         mask = create_explicit_mask_from_callable(lambda x: x + 1)
         self.assertRaises(MaskValueError, mask.in_training_set, 2)
-        self.assertRaises(MaskValueError, mask.in_testing_set, 2)
+        self.assertRaises(MaskValueError, mask.in_test_set, 2)
 
     def test_simple_mask_returns_correct_results(self):
         mask = create_explicit_mask_from_callable(lambda x: x % 2)
 
-        self.assertTrue(mask.in_testing_set(0))
+        self.assertTrue(mask.in_test_set(0))
         self.assertTrue(mask.in_training_set(1))
-        self.assertTrue(mask.in_testing_set(2))
+        self.assertTrue(mask.in_test_set(2))
         self.assertTrue(mask.in_training_set(3))
 
         self.assertFalse(mask.in_training_set(0))
-        self.assertFalse(mask.in_testing_set(1))
+        self.assertFalse(mask.in_test_set(1))
         self.assertFalse(mask.in_training_set(2))
-        self.assertFalse(mask.in_testing_set(3))
+        self.assertFalse(mask.in_test_set(3))

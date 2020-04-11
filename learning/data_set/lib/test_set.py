@@ -4,12 +4,12 @@ from learning.data_set.lib.basic_types.partial_data_set import PartialDataSet
 from learning.data_set.mask import Mask
 
 
-class TestingSet(PartialDataSet):
+class TestSet(PartialDataSet):
     """
-    TestingSet is the partial data set representing the set used for the
-    testing phase.
-    A testing set does not contain noise (by definition), and is ordered.
-    Iterating over the testing set will output data points from the portion of
+    TestSet is the partial data set representing the set used for the
+    test phase.
+    A test set does not contain noise (by definition), and is ordered.
+    Iterating over the test set will output data points from the portion of
     the data dedicated to testing.
     """
     def __init__(self, base_data_set: DataSet, mask: Mask) -> None:
@@ -22,11 +22,11 @@ class TestingSet(PartialDataSet):
 
         self._value += 1
         data_point = next(self._base_data_set)
-        mask_value = self._mask.in_testing_set(self._value)
+        mask_value = self._mask.in_test_set(self._value)
 
         while not mask_value:
             self._value += 1
             data_point = next(self._base_data_set)
-            mask_value = self._mask.in_testing_set(self._value)
+            mask_value = self._mask.in_test_set(self._value)
 
         return data_point

@@ -1,13 +1,12 @@
-from typing import Callable, List, Tuple
-
-from learning.data_set.lib.basic_types.values_list_data_set import ValuesListDataSet as _ValuesListDataSet
-from learning.data_set.lib.basic_types.callable_data_set import CallableDataSet as _CallableDataSet
+from typing import Callable, List
 
 from learning.data_set.data_set import DataSet, DataSets
-from learning.data_set.lib.masks.lazy_mask import LazyMask as _LazyMask
-from learning.data_set.lib.masks.explicit_list_mask import ExplicitListMask as _ExplicitListMask
+from learning.data_set.lib.basic_types.callable_data_set import CallableDataSet as _CallableDataSet
+from learning.data_set.lib.basic_types.values_list_data_set import ValuesListDataSet as _ValuesListDataSet
 from learning.data_set.lib.masks.explicit_callable_mask import ExplicitCallableMask as _ExplicitCallableMask
-from learning.data_set.lib.testing_set import TestingSet as _TestingSet
+from learning.data_set.lib.masks.explicit_list_mask import ExplicitListMask as _ExplicitListMask
+from learning.data_set.lib.masks.lazy_mask import LazyMask as _LazyMask
+from learning.data_set.lib.test_set import TestSet as _TestSet
 from learning.data_set.lib.training_set import TrainingSet as _TrainingSet
 from learning.data_set.mask import Mask
 
@@ -17,7 +16,7 @@ def create_data_set_from_callable(
         domain_size: int,
         noise_probability: float = 0.) -> DataSet:
     """
-    Create a base data set (used to create a training / testing set) from a
+    Create a base data set (used to create a training / test set) from a
     function (a python callable). Note that the function should get one argument,
     an integer between 0 and 2 ** domain_size, and return 0 or 1.
     :param function: The boolean function to generate a data set from.
@@ -37,7 +36,7 @@ def create_data_set_from_list(
         return_values: List[int],
         noise_probability: float = 0.) -> DataSet:
     """
-    Create a base data set (used to create a training / testing set) from an
+    Create a base data set (used to create a training / test set) from an
     explicit list of return values. Note that the list should be of length that
     is a power of two (to represent a full function), and contain only 0s and 1s.
     :param return_values: The return values of the function represented in the
@@ -64,7 +63,7 @@ def create_lazy_mask(percentage: float, seed: int = None) -> Mask:
     :param seed: Seeds the random element of the mask. Masks based on the same
     seed will perform exactly the same.
     :return: The mask object, used to split a data set into a training set and a
-    testing set.
+    test set.
     """
     return _LazyMask(percentage, seed)
 
@@ -76,7 +75,7 @@ def create_explicit_mask_from_list(mask_values: List[int]) -> Mask:
     applied to, and that all values should be 0 or 1.
     :param mask_values: The mask values, as a list of 0s and 1s.
     :return: The mask object, used to split a data set into a training set and a
-    testing set.
+    test set.
     """
     return _ExplicitListMask(mask_values)
 
@@ -88,67 +87,67 @@ def create_explicit_mask_from_callable(function: Callable[[int], int]) -> Mask:
     applied to, and that all values should be 0 or 1.
     :param function: The boolean function to use as the mask.
     :return: The mask object, used to split a data set into a training set and a
-    testing set.
+    test set.
     """
     return _ExplicitCallableMask(function)
 
 
-def create_training_and_testing_sets_from_callable(
+def create_training_and_test_sets_from_callable(
         data_set_function: Callable[[int], int],
         domain_size: int,
         mask: Mask,
         training_set_length: int,
         noise_probability: float = 0.) -> DataSets:
     """
-    Simplified way to create matching training and testing sets from a function
+    Simplified way to create matching training and test sets from a function
     (a python callable). Note that the function should get one argument,
     an integer between 0 and 2 ** domain_size, and return 0 or 1.
     :param data_set_function: The boolean function to generate a data set from.
     :param domain_size: The size of the function's domain.
     :param mask: The mask object used to split the data set into a training set
-    and a testing set. Covered indices will belong to the training set, and the
-    rest to testing set.
+    and a test set. Covered indices will belong to the training set, and the
+    rest to test set.
     :param training_set_length: How long should the training set iterator be.
     Note that a training set is created by randomly choosing data points from
     the portion of the data that belongs to the training set, so repetitions are
     likely if the training set is made to be long enough.
     :param noise_probability: The probability in which the data set outputs a
-    'noisy' result (bit flip). Only applies to the training set. The testing set
+    'noisy' result (bit flip). Only applies to the training set. The test set
     is never noisy.
     :return: The data sets representing these parameters.
     """
     base_data_set = create_data_set_from_callable(data_set_function, domain_size, noise_probability)
     return DataSets(training_set=_TrainingSet(base_data_set, mask, training_set_length, noise_probability),
-                    testing_set=_TestingSet(base_data_set, mask))
+                    test_set=_TestSet(base_data_set, mask))
 
 
-def create_training_and_testing_sets_from_list(
+def create_training_and_test_sets_from_list(
         data_set_return_values: List[int],
         mask: Mask,
         training_set_length: int,
         noise_probability: float = 0.) -> DataSets:
     """
-    Simplified way to create matching training and testing sets from a list of
+    Simplified way to create matching training and test sets from a list of
     return values representing a boolean function. Note that the list should be
     of length that is a power of two (to represent a full function), and contain
     only 0s and 1s.
     :param data_set_return_values: The return values of the function represented
     in the data set.
     :param mask: The mask object used to split the data set into a training set
-    and a testing set. Covered indices will belong to the training set, and the
-    rest to testing set.
+    and a test set. Covered indices will belong to the training set, and the
+    rest to test set.
     :param training_set_length: How long should the training set iterator be.
     Note that a training set is created by randomly choosing data points from
     the portion of the data that belongs to the training set, so repetitions are
     likely if the training set is made to be long enough.
     :param noise_probability: The probability in which the data set outputs a
-    'noisy' result (bit flip). Only applies to the training set. The testing set
+    'noisy' result (bit flip). Only applies to the training set. The test set
     is never noisy.
     :return: The data sets representing these parameters.
     """
     base_data_set = create_data_set_from_list(data_set_return_values, noise_probability)
     return DataSets(training_set=_TrainingSet(base_data_set, mask, training_set_length, noise_probability),
-                    testing_set=_TestingSet(base_data_set, mask))
+                    test_set=_TestSet(base_data_set, mask))
 
 
 def create_training_set_from_callable(
@@ -164,13 +163,13 @@ def create_training_set_from_callable(
     :param data_set_function: The boolean function to generate a data set from.
     :param domain_size: The size of the function's domain.
     :param mask: The mask object used to split the data set into a training set
-    and a testing set. Only covered indices will belong to the training set.
+    and a test set. Only covered indices will belong to the training set.
     :param training_set_length: How long should the training set iterator be.
     Note that a training set is created by randomly choosing data points from
     the portion of the data that belongs to the training set, so repetitions are
     likely if the training set is made to be long enough.
     :param noise_probability: The probability in which the data set outputs a
-    'noisy' result (bit flip). Only applies to the training set. The testing set
+    'noisy' result (bit flip). Only applies to the training set. The test set
     is never noisy.
     :return: The data sets representing these parameters.
     """
@@ -179,22 +178,22 @@ def create_training_set_from_callable(
     return _TrainingSet(base_data_set, mask, training_set_length, noise_probability)
 
 
-def create_testing_set_from_callable(
+def create_test_set_from_callable(
         data_set_function: Callable[[int], int],
         domain_size: int,
         mask: Mask) -> DataSet:
     """
-    Simplified way to create a  testing set from a function (a python callable).
+    Simplified way to create a  test set from a function (a python callable).
     Note that the function should get one argument, an integer between 0 and
     2 ** domain_size, and return 0 or 1.
     :param data_set_function: The boolean function to generate a data set from.
     :param domain_size: The size of the function's domain.
     :param mask: The mask object used to split the data set into a training set
-    and a testing set. Only uncovered indices will belong to the testing set.
+    and a test set. Only uncovered indices will belong to the test set.
     :return: The data sets representing these parameters.
     """
     base_data_set = create_data_set_from_callable(data_set_function, domain_size)
-    return _TestingSet(base_data_set, mask)
+    return _TestSet(base_data_set, mask)
 
 
 def create_training_set_from_list(
@@ -203,19 +202,19 @@ def create_training_set_from_list(
         training_set_length: int,
         noise_probability: float = 0.) -> DataSet:
     """
-    Simplified way to create a testing set from a list of return values
+    Simplified way to create a test set from a list of return values
     representing a boolean function. Note that the list should be of length that
     is a power of two (to represent a full function), and contain only 0s and 1s.
     :param data_set_return_values: The return values of the function represented
     in the data set.
     :param mask: The mask object used to split the data set into a training set
-    and a testing set. Only covered indices will belong to the training set.
+    and a test set. Only covered indices will belong to the training set.
     :param training_set_length: How long should the training set iterator be.
     Note that a training set is created by randomly choosing data points from
     the portion of the data that belongs to the training set, so repetitions are
     likely if the training set is made to be long enough.
     :param noise_probability: The probability in which the data set outputs a
-    'noisy' result (bit flip). Only applies to the training set. The testing set
+    'noisy' result (bit flip). Only applies to the training set. The test set
     is never noisy.
     :return: The data sets representing these parameters.
     """
@@ -223,18 +222,18 @@ def create_training_set_from_list(
     return _TrainingSet(base_data_set, mask, training_set_length, noise_probability)
 
 
-def create_testing_set_from_list(
+def create_test_set_from_list(
         data_set_return_values: List[int],
         mask: Mask) -> DataSet:
     """
-    Simplified way to create a testing set from a list of return values
+    Simplified way to create a test set from a list of return values
     representing a boolean function. Note that the list should be of length that
     is a power of two (to represent a full function), and contain only 0s and 1s.
     :param data_set_return_values: The return values of the function represented
     in the data set.
     :param mask: The mask object used to split the data set into a training set
-    and a testing set. Only uncovered indices will belong to the testing set.
+    and a test set. Only uncovered indices will belong to the test set.
     :return: The data sets representing these parameters.
     """
     base_data_set = create_data_set_from_list(data_set_return_values)
-    return _TestingSet(base_data_set, mask)
+    return _TestSet(base_data_set, mask)

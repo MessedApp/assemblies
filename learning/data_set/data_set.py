@@ -4,7 +4,7 @@ from collections import namedtuple
 from learning.data_set.data_point import DataPoint
 
 
-DataSets = namedtuple('DataSets', ['training_set', 'testing_set'])
+DataSets = namedtuple('DataSets', ['training_set', 'test_set'])
 
 
 class DataSet(metaclass=ABCMeta):

@@ -31,9 +31,9 @@ class ExplicitListMask(Mask):
         self._validate_mask_value(index, mask_value)
         return bool(mask_value)
 
-    def in_testing_set(self, index) -> bool:
+    def in_test_set(self, index) -> bool:
         """
-        Get the value of the mask for the testing set.
+        Get the value of the mask for the test set.
         :return: True if the index is included in the mask, or False if it isn't.
         """
         return not self.in_training_set(index)
