@@ -1,4 +1,5 @@
 from contextlib import contextmanager
+from typing import Union, Type
 
 from brain import OutputArea
 from lazy_brain import LazyBrain
@@ -8,7 +9,7 @@ from utils import value_or_default
 
 class TestBrainUtils(object):
 
-    def __init__(self, lazy, default_p=0.1, default_area_size=1000, default_winners_size=100,
+    def __init__(self, lazy: bool, default_p=0.1, default_area_size=1000, default_winners_size=100,
                  default_stimulus_size=300, beta=0.1):
         self.lazy = lazy
 
@@ -28,7 +29,7 @@ class TestBrainUtils(object):
             return self.brain.stimuli[self._stimuli[stimulus_index]]
 
     @property
-    def _brain_init_function(self):
+    def _brain_init_function(self) -> Type[Union[LazyBrain, NonLazyBrain]]:
         return LazyBrain if self.lazy else NonLazyBrain
 
     def _init_data(self):
@@ -40,12 +41,15 @@ class TestBrainUtils(object):
         self._stimuli = []
 
     def create_brain(self, number_of_areas, p=None, area_size=None, winners_size=None, beta=None,
-                     add_output_area=False):
+                     add_output_area=False, number_of_stimuli=0, stimulus_size=None) -> Union[LazyBrain, NonLazyBrain]:
         self._init_data()
 
         self.brain = self._brain_init_function(value_or_default(p, self.P))
         for i in range(1, number_of_areas + 1):
             self._add_area(str(i), area_size, winners_size, beta)
+
+        for i in range(1, number_of_stimuli + 1):
+            self._add_stimulus(str(i), stimulus_size)
 
         if add_output_area:
             self.brain.add_output_area('output')
@@ -75,6 +79,7 @@ class TestBrainUtils(object):
     def _add_stimulus(self, name, k):
         self.brain.add_stimulus(name=name,
                                 k=value_or_default(k, self.stimulus_size))
+        self.brain.stimuli[name].name = name
         self._stimuli.append(name)
 
     @staticmethod

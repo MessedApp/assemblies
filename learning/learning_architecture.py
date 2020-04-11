@@ -25,9 +25,9 @@ class LearningArchitecture:
         :param intermediate_area: the name of the area that shall be connected to the output area (i.e. the area
         obtaining the representation of the activated stimuli)
         """
+        self._brain = brain
         self.intermediate_area = self._get_area(intermediate_area)
 
-        self._brain = brain
         self._iterations: List[LearningArchitecture.Iteration] = []
         self._configuration: Union[LearningArchitecture.IterationConfiguration, None] = None
 
@@ -109,7 +109,7 @@ class LearningArchitecture:
         :param consecutive_runs: the number of times this step shall run consecutively (given its turn)
         """
         new_iteration = self.Iteration(
-            source=self._get_stimulus(source_area),
+            source=self._get_area(source_area),
             target=self._get_area(target_area),
             consecutive_runs=consecutive_runs)
         self._iterations.append(new_iteration)
