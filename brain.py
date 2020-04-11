@@ -166,6 +166,15 @@ class Brain:
         for key in self.areas:
             self.output_areas[name].area_beta[key] = self.output_areas[name].beta
 
+    def remove_output_area(self, name: str) -> None:
+        assert name in self.output_areas, "an output area with the given name doesn't exist"
+
+        self.output_areas.pop(name)
+        for connectome in self.output_stimuli_connectomes.items():
+            connectome.pop(name, None)
+        for connectome in self.output_connectomes.items():
+            connectome.pop(name, None)
+
     def add_area(self, name: str, n: int, k: int, beta: float) -> None:
         pass
 
