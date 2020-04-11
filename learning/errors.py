@@ -33,7 +33,7 @@ class ValuesMismatch(Exception):
 
 
 class DomainSizeMismatch(ValuesMismatch):
-    def __init__(self, expected_object: str, actual_object: str, expected_size: int, actual_size: int) -> None:
+    def __init__(self, expected_object, actual_object, expected_size: int, actual_size: int) -> None:
         super().__init__(expected_size, actual_size)
         self._expected_object = expected_object
         self._actual_object = actual_object

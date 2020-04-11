@@ -1,3 +1,4 @@
+import math
 from typing import List, Union
 
 from brain import Brain, Stimulus, OutputArea, Area
@@ -73,29 +74,28 @@ class LearningModel:
 
         self._accuracy = round(successful_runs / total_runs, 2)
 
-    def run_model(self, input_string: str) -> int:
+    def run_model(self, input_number: int) -> int:
         """
         This function runs the model with the given binary string and returns the result.
         It must be run after the model has finished its training process
-        :param input_string: the binary input for the model to calculate
+        :param input_number: the input for the model to calculate
         :return: the result of the model to the given input
         """
-        if len(input_string) != self._domain_size:
-            raise DomainSizeMismatch('Learning model', input_string, self._domain_size, len(input_string))
+        self._validate_input_number(input_number)
 
-        self._run_unsupervised_projection(input_string)
+        self._run_unsupervised_projection(input_number)
         self._brain.project(stim_to_area={},
-                            area_to_area={self._architecture.intermediate_area.name: self.output_area.name})
+                            area_to_area={self._architecture.intermediate_area.name: [self.output_area.name]})
         return self.output_area.winners[0]
 
-    def _run_unsupervised_projection(self, input_string: str) -> None:
+    def _run_unsupervised_projection(self, input_number: int) -> None:
         """
         Running the unsupervised learning according to the configured architecture, i.e., setting up the connections
         between the areas of the brain (listed in the architecture), according to the activated stimuli (dictated by
         the given binary string)
-        :param input_string: the binary string, dictating which stimuli are activated
+        :param input_number: the input number, dictating which stimuli are activated
         """
-        active_stimuli = self._convert_input_to_stimuli(input_string)
+        active_stimuli = self._convert_input_to_stimuli(input_number)
 
         self._architecture.initialize_run(number_of_cycles=LearningConfigurations.NUMBER_OF_UNSUPERVISED_CYCLES)
 
@@ -115,7 +115,7 @@ class LearningModel:
         """
         # TODO add 'training=True' to projection
         self.output_area.winners = [output]
-        for iteration in LearningConfigurations.NUMBER_OF_SUPERVISED_CYCLES:
+        for iteration in range(LearningConfigurations.NUMBER_OF_SUPERVISED_CYCLES):
             self._brain.project(stim_to_area={},
                                 area_to_area={
                                     self._architecture.intermediate_area.name: [self.output_area.name]
@@ -136,28 +136,37 @@ class LearningModel:
             )
         return dict(
             stim_to_area={},
-            area_to_area={source.name, [target.name]}
+            area_to_area={source.name: [target.name]}
         )
 
-    def _convert_input_to_stimuli(self, input_string: str) -> List[str]:
+    def _convert_input_to_stimuli(self, input_number: int) -> List[str]:
         """
         Converting a binary string to a list of activated stimuli.
         For example: - given the stimuli [1,2,3,4], the binary string of "00" would convert to [1,3]
                      - given the stimuli [1,2,3,4], the binary string of "01" would convert to [1,4]
                      - given the stimuli [1,2,3,4], the binary string of "10" would convert to [2,3]
                      - given the stimuli [1,2,3,4], the binary string of "11" would convert to [2,4]
-        :param input_string: the binary string to be converted to a list of stimuli
+        :param input_number: the input number to be converted to a list of stimuli
         :return: the activated stimuli names
         """
         if len(self._brain.stimuli) != self._domain_size * 2:
             raise StimuliMismatch(self._domain_size * 2, len(self._brain.stimuli))
 
-        if len(input_string) != self._domain_size:
-            raise DomainSizeMismatch('Learning model', input_string, self._domain_size, len(input_string))
+        self._validate_input_number(input_number)
 
+        binary_string = str(bin(input_number))[2:].zfill(self._domain_size)
         active_stimuli = []
         for index, stimulus in enumerate(self._stimuli):
-            relevant_char = input_string[index // 2]
+            relevant_char = binary_string[index // 2]
             if index % 2 == int(relevant_char):
                 active_stimuli.append(stimulus)
         return active_stimuli
+
+    def _validate_input_number(self, input_number: int) -> None:
+        """
+        Validating that the given number is in the model's domain
+        :param: input_number: the number to validate
+        """
+        input_domain = math.ceil(math.log(input_number + 1, 2))
+        if input_domain > self._domain_size:
+            raise DomainSizeMismatch('Learning model', input_number, self._domain_size, input_domain)

@@ -104,8 +104,8 @@ class Area(BaseArea):
 
 
 class OutputArea(BaseArea):
-    n = 1000
-    k = 30
+    n = 2
+    k = 1
     beta = 0.05
 
     def __init__(self, name: str):
