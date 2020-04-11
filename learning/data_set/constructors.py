@@ -5,7 +5,8 @@ from learning.data_set.lib.basic_types.callable_data_set import CallableDataSet 
 
 from learning.data_set.data_set import DataSet, DataSets
 from learning.data_set.lib.masks.lazy_mask import LazyMask as _LazyMask
-from learning.data_set.lib.masks.explicit_mask import ExplicitMask as _ExplicitMask
+from learning.data_set.lib.masks.explicit_list_mask import ExplicitListMask as _ExplicitListMask
+from learning.data_set.lib.masks.explicit_callable_mask import ExplicitCallableMask as _ExplicitCallableMask
 from learning.data_set.lib.testing_set import TestingSet as _TestingSet
 from learning.data_set.lib.training_set import TrainingSet as _TrainingSet
 from learning.data_set.mask import Mask
@@ -68,7 +69,7 @@ def create_lazy_mask(percentage: float, seed: int = None) -> Mask:
     return _LazyMask(percentage, seed)
 
 
-def create_explicit_mask(mask_values: List[int]) -> Mask:
+def create_explicit_mask_from_list(mask_values: List[int]) -> Mask:
     """
     Create a mask that covers the indexes that are 1s in the given list. Note
     the given mask should cover all indices of the data set it is meant to be
@@ -77,7 +78,19 @@ def create_explicit_mask(mask_values: List[int]) -> Mask:
     :return: The mask object, used to split a data set into a training set and a
     testing set.
     """
-    return _ExplicitMask(mask_values)
+    return _ExplicitListMask(mask_values)
+
+
+def create_explicit_mask_from_callable(function: Callable[[int], int]) -> Mask:
+    """
+    Create a mask that covers the indexes that to which the given function returns 1.
+    Note the given mask should cover all indices of the data set it is meant to be
+    applied to, and that all values should be 0 or 1.
+    :param function: The boolean function to use as the mask.
+    :return: The mask object, used to split a data set into a training set and a
+    testing set.
+    """
+    return _ExplicitCallableMask(function)
 
 
 def create_training_and_testing_sets_from_callable(

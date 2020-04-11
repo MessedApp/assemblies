@@ -1,18 +1,18 @@
 from unittest import TestCase
 
-from learning.data_set.constructors import create_explicit_mask, create_testing_set_from_callable, create_lazy_mask
+from learning.data_set.constructors import create_explicit_mask_from_list, create_testing_set_from_callable, create_lazy_mask
 from learning.data_set.data_point import DataPoint
 
 
 class TestTestingSet(TestCase):
     def test_testing_set_returns_data_points(self):
-        mask = create_explicit_mask([0, 0, 1, 1, 0, 1, 1, 1])
+        mask = create_explicit_mask_from_list([0, 0, 1, 1, 0, 1, 1, 1])
         s = create_testing_set_from_callable(lambda x: x % 2, 3, mask)
         for data_point in s:
             self.assertIsInstance(data_point, DataPoint)
 
     def test_testing_set_is_reusable(self):
-        mask = create_explicit_mask([0, 0, 1, 1, 0, 1, 1, 1])
+        mask = create_explicit_mask_from_list([0, 0, 1, 1, 0, 1, 1, 1])
         s = create_testing_set_from_callable(lambda x: x % 2, 3, mask)
         for data_point in s:
             self.assertIsInstance(data_point, DataPoint)
@@ -22,7 +22,7 @@ class TestTestingSet(TestCase):
             self.assertIsInstance(data_point, DataPoint)
 
     def test_testing_set_length_is_correct(self):
-        mask = create_explicit_mask([0, 0, 1, 1, 0, 1, 1, 1])
+        mask = create_explicit_mask_from_list([0, 0, 1, 1, 0, 1, 1, 1])
         s = create_testing_set_from_callable(lambda x: x % 2, 3, mask)
         self.assertEqual(3, len([i for i in s]))
 
@@ -43,7 +43,7 @@ class TestTestingSet(TestCase):
         self.assertListEqual(list(range(2 ** 8)), [data_point.input for data_point in s])
 
     def test_testing_set_is_partial(self):
-        mask = create_explicit_mask([0, 0, 1, 1, 0, 1, 1, 1])
+        mask = create_explicit_mask_from_list([0, 0, 1, 1, 0, 1, 1, 1])
         s = create_testing_set_from_callable(lambda x: x % 2, 3, mask)
         indices = {data_point.input for data_point in s}
         self.assertNotIn(2, indices)
