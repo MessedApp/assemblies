@@ -10,6 +10,8 @@ from scipy.stats import truncnorm
 import math
 import random
 
+from learning.learning_stages.learning_stages import BrainMode
+
 
 class LazyBrain(Brain):
     """ Represents a simulated brain where the the connectomes are generated lazily, i.e. generated only when needed.
@@ -168,6 +170,8 @@ class LazyBrain(Brain):
             """
             # effective_n := Number of neurons that never fired in the area
             effective_n = area.n - area.support_size
+            if not effective_n:
+                return []
             # Threshold for inputs that are above (n-k)/n percentile. alpha is the smallest number such that:
             # Pr(Bin(total_k,self.p) <= alpha) >= (effective_n-area.k)/effective_n
             # A.k.a the probability that the number of neurons that aren't going to fire in the area will be lower than
@@ -200,7 +204,10 @@ class LazyBrain(Brain):
             # get num_first_winners (think something small)
             # can generate area._new_winners, note the new indices
             both = prev_winner_inputs + potential_new_winners
-            new_winner_indices = heapq.nlargest(area.k, list(range(len(both))), both.__getitem__)
+            if self.mode != BrainMode.TRAINING or not isinstance(area, OutputArea):
+                new_winner_indices = heapq.nlargest(area.k, list(range(len(both))), both.__getitem__)
+            else:
+                new_winner_indices = area.desired_output
             num_first_winners = 0
             first_winner_inputs = []
             for i in range(area.k):
@@ -265,9 +272,11 @@ class LazyBrain(Brain):
                     self.get_stimulus_connectomes(stim, area.name)[area.support_size + i] = \
                         first_winner_to_inputs[i][input_index]
                 beta = area.stimulus_beta[stim]
-                # connectomes of winners are now stronger
-                for i in area._new_winners:
-                    self.get_stimulus_connectomes(stim, area.name)[i] *= (1 + beta)
+
+                if self.mode != BrainMode.TESTING:
+                    # connectomes of winners are now stronger
+                    for i in area._new_winners:
+                        self.get_stimulus_connectomes(stim, area.name)[i] *= (1 + beta)
                 logging.debug(f'stimulus {stim} now looks like: {self.get_stimulus_connectomes(stim, area.name)}')
                 input_index += 1
 
@@ -307,10 +316,11 @@ class LazyBrain(Brain):
                         # j that is a winner and did not fire has connectome 0 (since otherwise, it would fire)
 
                 beta = area.area_beta[from_area]
-                # connectomes of winners are now stronger
-                for i in area._new_winners:
-                    for j in from_area_winners:
-                        self.get_area_connectomes(from_area, area.name)[j][i] *= (1.0 + beta)
+                if self.mode != BrainMode.TESTING:
+                    # connectomes of winners are now stronger
+                    for i in area._new_winners:
+                        for j in from_area_winners:
+                            self.get_area_connectomes(from_area, area.name)[j][i] *= (1.0 + beta)
                 logging.debug(f'Connectome of {from_area} to {area.name} is now '
                               f'{self.get_area_connectomes(from_area, area.name)}')
                 input_index += 1

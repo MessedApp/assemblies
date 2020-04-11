@@ -23,6 +23,8 @@ from typing import List, Mapping, Dict
 from collections import defaultdict
 from numpy.core._multiarray_umath import ndarray
 
+from learning.learning_stages.learning_stages import BrainMode
+
 
 class Stimulus:
     """ Represents a random stimulus that can be applied to any part of the brain.
@@ -110,7 +112,9 @@ class OutputArea(BaseArea):
 
     def __init__(self, name: str):
         super().__init__(name)
-        self.support = [0] * OutputArea.n
+        self.support = [1] * OutputArea.n
+        self.support_size = OutputArea.n
+        self.desired_output = [0] * OutputArea.n  # will be taken to be the winners array
 
 
 class Brain:
@@ -140,6 +144,8 @@ class Brain:
             defaultdict(lambda: defaultdict(lambda: [[0] * OutputArea.n for i in range(OutputArea.n)]))
 
         self.p: float = p
+
+        self.mode = BrainMode.DEFAULT
 
     def get_stimulus_connectomes(self, stimulus_name, area_name):
         if area_name in self.output_areas:
