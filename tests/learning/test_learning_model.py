@@ -42,8 +42,8 @@ class TestLearningModel(TestCase):
         self.architecture = LearningArchitecture(self.brain, intermediate_area=self.area_c.name)
         self.architecture.add_stimulus_to_area_iteration(self.stim_a.name, self.area_a.name)
         self.architecture.add_stimulus_to_area_iteration(self.stim_b.name, self.area_a.name)
-        self.architecture.add_stimulus_to_area_iteration(self.stim_a.name, self.area_b.name)
-        self.architecture.add_stimulus_to_area_iteration(self.stim_b.name, self.area_b.name)
+        self.architecture.add_stimulus_to_area_iteration(self.stim_c.name, self.area_b.name)
+        self.architecture.add_stimulus_to_area_iteration(self.stim_d.name, self.area_b.name)
 
         self.architecture.add_area_to_area_iteration(self.area_a.name, self.area_c.name)
         self.architecture.add_area_to_area_iteration(self.area_b.name, self.area_c.name)
