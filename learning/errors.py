@@ -49,8 +49,3 @@ class StimuliMismatch(ValuesMismatch):
         
     def __str__(self) -> str:
         return f"Number of stimuli should be {self._expected_value}. Instead, it's {self._actual_value}"
-
-
-class ModelNotTested(Exception):
-    def __str__(self) -> str:
-        return f"The learning model must be tested for the accuracy to be calculated"

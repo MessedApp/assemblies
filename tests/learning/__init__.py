@@ -5,7 +5,7 @@ from learning.learning_configurations import LearningConfigurations
 from tests import TestBrainUtils
 
 
-def modify_customizations(supervised, unsupervised):
+def modify_configurations(supervised, unsupervised):
     def decorator(function):
         def wrapper(*args, **kwargs):
             original_data = \

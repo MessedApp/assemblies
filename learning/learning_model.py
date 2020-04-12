@@ -1,15 +1,19 @@
 import math
+from collections import namedtuple
 from contextlib import contextmanager
 from typing import List, Union
 
 from brain import Brain, Stimulus, OutputArea, Area
 from learning.data_set.lib.basic_types.data_set_base import DataSetBase
 from learning.data_set.lib.basic_types.partial_data_set import PartialDataSet
-from learning.data_set.lib.training_set import TrainingSet
-from learning.errors import DomainSizeMismatch, StimuliMismatch, ModelNotTested
+from learning.errors import DomainSizeMismatch, StimuliMismatch
 from learning.learning_architecture import LearningArchitecture
 from learning.learning_configurations import LearningConfigurations
 from learning.learning_stages.learning_stages import BrainMode
+
+TestResults = namedtuple('TestResults', ['accuracy',
+                                         'true_positive',
+                                         'false_negative'])
 
 
 class LearningModel:
@@ -24,15 +28,6 @@ class LearningModel:
 
         self._accuracy = None
         self._output_area = None
-
-    @property
-    def accuracy(self) -> float:
-        """
-        :return: the accuracy (%) of the model
-        """
-        if not self._accuracy:
-            raise ModelNotTested()
-        return self._accuracy
 
     @property
     def output_area(self) -> OutputArea:
@@ -56,9 +51,9 @@ class LearningModel:
 
         for data_point in training_set:
             self._run_unsupervised_projection(data_point.input)
-            self._run_supervised_projection(int(data_point.output))
+            self._run_supervised_projection(data_point.output)
 
-    def test_model(self, test_set: PartialDataSet) -> None:
+    def test_model(self, test_set: PartialDataSet) -> TestResults:
         """
         Given a test set, this function runs the model on the data points' inputs - and compares it to the expected
         output. It later saves the percentage of the matching runs
@@ -68,14 +63,18 @@ class LearningModel:
         if test_set.domain_size != self._domain_size:
             raise DomainSizeMismatch('Learning model', 'Test set', self._domain_size, test_set.domain_size)
 
-        total_runs = 0
-        successful_runs = 0
+        true_positive = []
+        false_negative = []
         for data_point in test_set:
-            total_runs += 1
             if self.run_model(data_point.input) == int(data_point.output):
-                successful_runs += 1
+                true_positive.append(data_point.input)
+            else:
+                false_negative.append(data_point.input)
 
-        self._accuracy = round(successful_runs / total_runs, 2)
+        accuracy = round(len(true_positive) / (len(true_positive) + len(false_negative)), 2)
+        return TestResults(accuracy=accuracy,
+                           true_positive=true_positive,
+                           false_negative=false_negative)
 
     def run_model(self, input_number: int) -> int:
         """
@@ -86,9 +85,10 @@ class LearningModel:
         """
         self._validate_input_number(input_number)
 
-        self._run_unsupervised_projection(input_number)
-        self._brain.project(stim_to_area={},
-                            area_to_area={self._architecture.intermediate_area.name: [self.output_area.name]})
+        with self._set_training_mode(BrainMode.TESTING):
+            self._run_unsupervised_projection(input_number)
+            self._brain.project(stim_to_area={},
+                                area_to_area={self._architecture.intermediate_area.name: [self.output_area.name]})
         return self.output_area.winners[0]
 
     def _run_unsupervised_projection(self, input_number: int) -> None:
@@ -116,7 +116,7 @@ class LearningModel:
         area, while fixating the firing neuron in the output area to correspond with the given binary output
         :param output: the binary output
         """
-        with self._set_training_mode():
+        with self._set_training_mode(BrainMode.TRAINING):
             self.output_area.desired_output = [output]
             for iteration in range(LearningConfigurations.NUMBER_OF_SUPERVISED_CYCLES):
                 self._brain.project(stim_to_area={},
@@ -175,10 +175,10 @@ class LearningModel:
             raise DomainSizeMismatch('Learning model', input_number, self._domain_size, input_domain)
 
     @contextmanager
-    def _set_training_mode(self) -> None:
+    def _set_training_mode(self, brain_mode: BrainMode) -> None:
         """
         Setting the brain to be of mode=TRAINING, and later returns its original mode
         """
-        original_mode, self._brain.mode = self._brain.mode, BrainMode.TRAINING
+        original_mode, self._brain.mode = self._brain.mode, brain_mode
         yield
         self._brain.mode = original_mode
