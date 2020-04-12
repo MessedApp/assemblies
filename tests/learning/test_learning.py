@@ -17,4 +17,4 @@ class TestLearning(TestLearningBase):
         model = learning.create_model()
         test_results = model.test_model(data_set)
 
-        self.assertEqual(1, test_results.accuracy)
+        self.assertEqual(1, test_results.accuracy) # TODO: There may be models in which this is not necessary

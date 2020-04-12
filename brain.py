@@ -44,7 +44,10 @@ class Stimulus:
     def __init__(self, k: int):
         self.k = k
 
-
+# TODO: design. There is no real reason for output area's parameters to be static
+#   (I'd prefer perhaps a static default values).
+#   anyway, it seems like we can get rid of BaseArea, and simply have class OutputArea(Area).
+#   Possibly we can also have Stimulus as some sort of a subclass of area (or of BaseArea).
 class BaseArea:
     def __init__(self, name) -> None:
         super().__init__()
@@ -128,6 +131,7 @@ class Brain:
         connectomes: Maps each pair of areas to the ndarray representing the synaptic weights among neurons in
             the support.
         p: Probability of connectome (edge) existing between two neurons (vertices)
+        TODO: document output + mode.
     """
 
     def __init__(self, p: float):
