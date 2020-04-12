@@ -5,6 +5,8 @@ import numpy as np
 import heapq
 from numpy.core._multiarray_umath import ndarray
 
+from learning.learning_stages.learning_stages import BrainMode
+
 
 class NonLazyBrain(Brain):
     """ Represents a simulated brain, with it's different areas, stimuli, and all the synapse weights.
@@ -139,14 +141,16 @@ class NonLazyBrain(Brain):
         logging.debug(f'prev_winner_inputs: {prev_winner_inputs}')
         return prev_winner_inputs
 
-    @staticmethod
-    def project_into_calculate_winners(area: Area, inputs) -> int:
+    def project_into_calculate_winners(self, area: Area, inputs) -> int:
         """
         find k neurons with maximal inputs to be the new winners
         update area._new_winners, area.support and area._new_support_size
         :return: number of winners that weren't in area.support before
         """
-        area._new_winners = heapq.nlargest(area.k, list(range(len(inputs))), inputs.__getitem__)
+        if self.mode != BrainMode.TRAINING or not isinstance(area, OutputArea):
+            area._new_winners = heapq.nlargest(area.k, list(range(len(inputs))), inputs.__getitem__)
+        else:
+            area._new_winners = area.desired_output
         num_first_winners: int = 0
         for winner in area._new_winners:
             if not area.support[winner]:
@@ -186,5 +190,6 @@ class NonLazyBrain(Brain):
         """
         inputs = self.project_into_calculate_inputs(area, from_stimuli, from_areas)
         num_first_winners = self.project_into_calculate_winners(area, inputs)
-        self.project_into_update_connectomes(area, from_stimuli, from_areas)
+        if self.mode != BrainMode.TESTING:
+            self.project_into_update_connectomes(area, from_stimuli, from_areas)
         return num_first_winners
