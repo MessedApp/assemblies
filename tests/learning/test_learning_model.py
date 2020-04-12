@@ -70,8 +70,7 @@ class TestLearningModel(TestCase):
         self.assertEqual(result_11, result_11_2)
         self.assertEqual(result_00, result_00_2)
 
-    @skip("Awaits 'training' flag in projection")
-    @modify_customizations(10, 10)
+    @modify_customizations(30, 30)
     def test_train_model_sanity(self):
         model = LearningModel(brain=self.brain, domain_size=2, architecture=self.architecture)
 
@@ -80,3 +79,16 @@ class TestLearningModel(TestCase):
         model.train_model(training_set)
         model.test_model(training_set)
         self.assertEqual(1, model.accuracy)
+
+    def test_convert_input_to_stimuli(self):
+        model = LearningModel(brain=self.brain, domain_size=2, architecture=self.architecture)
+
+        result_00 = model._convert_input_to_stimuli(0)
+        result_01 = model._convert_input_to_stimuli(1)
+        result_10 = model._convert_input_to_stimuli(2)
+        result_11 = model._convert_input_to_stimuli(3)
+
+        self.assertEqual(['1', '3'], result_00)
+        self.assertEqual(['1', '4'], result_01)
+        self.assertEqual(['2', '3'], result_10)
+        self.assertEqual(['2', '4'], result_11)

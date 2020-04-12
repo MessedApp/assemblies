@@ -1,4 +1,5 @@
 import math
+from contextlib import contextmanager
 from typing import List, Union
 
 from brain import Brain, Stimulus, OutputArea, Area
@@ -7,6 +8,7 @@ from learning.data_set.lib.training_set import TrainingSet
 from learning.errors import DomainSizeMismatch, StimuliMismatch, ModelNotTested
 from learning.learning_architecture import LearningArchitecture
 from learning.learning_configurations import LearningConfigurations
+from learning.learning_stages.learning_stages import BrainMode
 
 
 class LearningModel:
@@ -113,13 +115,13 @@ class LearningModel:
         area, while fixating the firing neuron in the output area to correspond with the given binary output
         :param output: the binary output
         """
-        # TODO add 'training=True' to projection
-        self.output_area.winners = [output]
-        for iteration in range(LearningConfigurations.NUMBER_OF_SUPERVISED_CYCLES):
-            self._brain.project(stim_to_area={},
-                                area_to_area={
-                                    self._architecture.intermediate_area.name: [self.output_area.name]
-                                })
+        with self._set_training_mode():
+            self.output_area.desired_output = [output]
+            for iteration in range(LearningConfigurations.NUMBER_OF_SUPERVISED_CYCLES):
+                self._brain.project(stim_to_area={},
+                                    area_to_area={
+                                        self._architecture.intermediate_area.name: [self.output_area.name]
+                                    })
 
     @staticmethod
     def _get_projection_parameters(source: Union[Stimulus, Area], target: Area) -> dict:
@@ -170,3 +172,12 @@ class LearningModel:
         input_domain = math.ceil(math.log(input_number + 1, 2))
         if input_domain > self._domain_size:
             raise DomainSizeMismatch('Learning model', input_number, self._domain_size, input_domain)
+
+    @contextmanager
+    def _set_training_mode(self) -> None:
+        """
+        Setting the brain to be of mode=TRAINING, and later returns its original mode
+        """
+        original_mode, self._brain.mode = self._brain.mode, BrainMode.TRAINING
+        yield
+        self._brain.mode = original_mode
