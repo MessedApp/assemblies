@@ -5,7 +5,6 @@ from typing import List, Union
 
 from brain import Brain, Stimulus, OutputArea, Area
 from learning.data_set.lib.basic_types.data_set_base import DataSetBase
-from learning.data_set.lib.basic_types.partial_data_set import PartialDataSet
 from learning.errors import DomainSizeMismatch, StimuliMismatch
 from learning.learning_architecture import LearningArchitecture
 from learning.learning_configurations import LearningConfigurations
@@ -53,7 +52,7 @@ class LearningModel:
             self._run_unsupervised_projection(data_point.input)
             self._run_supervised_projection(data_point.output)
 
-    def test_model(self, test_set: PartialDataSet) -> TestResults:
+    def test_model(self, test_set: DataSetBase) -> TestResults:
         """
         Given a test set, this function runs the model on the data points' inputs - and compares it to the expected
         output. It later saves the percentage of the matching runs
