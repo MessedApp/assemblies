@@ -3,6 +3,7 @@ from contextlib import contextmanager
 from typing import List, Union
 
 from brain import Brain, Stimulus, OutputArea, Area
+from learning.data_set.lib.basic_types.data_set_base import DataSetBase
 from learning.data_set.lib.basic_types.partial_data_set import PartialDataSet
 from learning.data_set.lib.training_set import TrainingSet
 from learning.errors import DomainSizeMismatch, StimuliMismatch, ModelNotTested
@@ -45,7 +46,7 @@ class LearningModel:
             self._output_area = self._brain.output_areas['Output']
         return self._output_area
 
-    def train_model(self, training_set: TrainingSet) -> None:
+    def train_model(self, training_set: DataSetBase) -> None:
         """
         This function trains the model with the given training set
         :param training_set: the set by which to train the model

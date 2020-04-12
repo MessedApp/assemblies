@@ -32,6 +32,15 @@ class TestBrainUtils(object):
     def _brain_init_function(self) -> Type[Union[LazyBrain, NonLazyBrain]]:
         return LazyBrain if self.lazy else NonLazyBrain
 
+    @property
+    def name_iterator(self):
+        def iterator():
+            name = 'A'
+            while 1:
+                yield name
+                name = chr(ord(name) + 1)
+        return iterator
+
     def _init_data(self):
         self.brain = None
         # Area names, ordered by their creation time
@@ -45,11 +54,13 @@ class TestBrainUtils(object):
         self._init_data()
 
         self.brain = self._brain_init_function(value_or_default(p, self.P))
+        area_name_iterator = self.name_iterator()
         for i in range(1, number_of_areas + 1):
-            self._add_area(str(i), area_size, winners_size, beta)
+            self._add_area(next(area_name_iterator), area_size, winners_size, beta)
 
+        stimulus_name_iterator = self.name_iterator()
         for i in range(1, number_of_stimuli + 1):
-            self._add_stimulus(str(i), stimulus_size)
+            self._add_stimulus(next(stimulus_name_iterator), stimulus_size)
 
         if add_output_area:
             self.brain.add_output_area('output')

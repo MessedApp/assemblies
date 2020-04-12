@@ -1,52 +1,11 @@
-from unittest import TestCase, skip
-
 from learning.data_set.constructors import create_data_set_from_list
 from learning.errors import DomainSizeMismatch
-from learning.learning_architecture import LearningArchitecture
-from learning.learning_configurations import LearningConfigurations
+
 from learning.learning_model import LearningModel
-from tests import TestBrainUtils
+from tests.learning import TestLearningBase, modify_customizations
 
 
-def modify_customizations(supervised, unsupervised):
-    def decorator(function):
-        def wrapper(*args, **kwargs):
-            original_data = \
-                LearningConfigurations.NUMBER_OF_SUPERVISED_CYCLES, LearningConfigurations.NUMBER_OF_UNSUPERVISED_CYCLES
-            LearningConfigurations.NUMBER_OF_SUPERVISED_CYCLES, LearningConfigurations.NUMBER_OF_UNSUPERVISED_CYCLES = \
-                supervised, unsupervised
-            result = function(*args, **kwargs)
-            LearningConfigurations.NUMBER_OF_SUPERVISED_CYCLES, LearningConfigurations.NUMBER_OF_UNSUPERVISED_CYCLES = \
-                original_data
-            return result
-        return wrapper
-    return decorator
-
-
-class TestLearningModel(TestCase):
-
-    def setUp(self) -> None:
-        utils = TestBrainUtils(lazy=False)
-        self.brain = utils.create_brain(number_of_areas=3, number_of_stimuli=4,
-                                        area_size=100, winners_size=10)
-
-        self.area_a = utils.area0
-        self.area_b = utils.area1
-        self.area_c = utils.area2
-
-        self.stim_a = utils.stim0
-        self.stim_b = utils.stim1
-        self.stim_c = utils.stim2
-        self.stim_d = utils.stim3
-
-        self.architecture = LearningArchitecture(self.brain, intermediate_area=self.area_c.name)
-        self.architecture.add_stimulus_to_area_iteration(self.stim_a.name, self.area_a.name)
-        self.architecture.add_stimulus_to_area_iteration(self.stim_b.name, self.area_a.name)
-        self.architecture.add_stimulus_to_area_iteration(self.stim_c.name, self.area_b.name)
-        self.architecture.add_stimulus_to_area_iteration(self.stim_d.name, self.area_b.name)
-
-        self.architecture.add_area_to_area_iteration(self.area_a.name, self.area_c.name)
-        self.architecture.add_area_to_area_iteration(self.area_b.name, self.area_c.name)
+class TestLearningModel(TestLearningBase):
 
     @modify_customizations(1, 1)
     def test_run_model_sanity(self):
@@ -88,7 +47,7 @@ class TestLearningModel(TestCase):
         result_10 = model._convert_input_to_stimuli(2)
         result_11 = model._convert_input_to_stimuli(3)
 
-        self.assertEqual(['1', '3'], result_00)
-        self.assertEqual(['1', '4'], result_01)
-        self.assertEqual(['2', '3'], result_10)
-        self.assertEqual(['2', '4'], result_11)
+        self.assertEqual(['A', 'C'], result_00)
+        self.assertEqual(['A', 'D'], result_01)
+        self.assertEqual(['B', 'C'], result_10)
+        self.assertEqual(['B', 'D'], result_11)
